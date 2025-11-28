@@ -202,6 +202,25 @@ const url = window.location.href;
 const showSetupPanel = url.includes('setupmode');
 leftPanel.style.display = showSetupPanel ? 'flex' : 'none';
 
+// Helper: read URL parameters (e.g. ?outerRel=0.9&logoSizeRel=0.05)
+const params = new URLSearchParams(window.location.search);
+
+function paramFloat(name, current) {
+  const v = params.get(name);
+  if (v === null) return current;
+  const n = parseFloat(v);
+  return Number.isFinite(n) ? n : current;
+}
+
+function paramBool(name, current) {
+  const v = params.get(name);
+  if (v === null) return current;
+  const low = v.toLowerCase();
+  if (low === '1' || low === 'true') return true;
+  if (low === '0' || low === 'false') return false;
+  return current;
+}
+
 // ===== Relative configuration (all 0–1 where noted) =====
 // 1. Clock outer size: 1.0 = clock height equals current viewport height
 let outerRel = 0.95; // you can tune with slider
@@ -229,12 +248,38 @@ let diamondBaseInsetRel = 0.247; // how far diamond centre is inside tip radius
 let diamondBackRel      = 0.025; // how much inner tip is inside diamond centre
 let diamondWidthRel     = 0.098; // diamond width vs radius
 
+// 6. Background and logo parameters
+let bgScaleRel   = 1.073; // scale factor for reference image
+let logoSizeRel  = 0.038; // logo radius vs clock radius
+let showLogo     = true;
+let runClock     = true;
+let manualAngle  = 0.25;  // 0–1 turns
+
+// Apply URL overrides (if provided)
+outerRel            = paramFloat('outerRel', outerRel);
+minorInnerRel       = paramFloat('minorInnerRel', minorInnerRel);
+majorInnerRel       = paramFloat('majorInnerRel', majorInnerRel);
+minorOuterRel       = paramFloat('minorOuterRel', minorOuterRel);
+minorWidthRel       = paramFloat('minorWidthRel', minorWidthRel);
+majorWidthRel       = paramFloat('majorWidthRel', majorWidthRel);
+numberRadiusRel     = paramFloat('numberRadiusRel', numberRadiusRel);
+numberFontRel       = paramFloat('numberFontRel', numberFontRel);
+centerCircleRel     = paramFloat('centerCircleRel', centerCircleRel);
+shaftWidthRel       = paramFloat('shaftWidthRel', shaftWidthRel);
+tipRel              = paramFloat('tipRel', tipRel);
+diamondBaseInsetRel = paramFloat('diamondBaseInsetRel', diamondBaseInsetRel);
+diamondBackRel      = paramFloat('diamondBackRel', diamondBackRel);
+diamondWidthRel     = paramFloat('diamondWidthRel', diamondWidthRel);
+bgScaleRel          = paramFloat('bgScaleRel', bgScaleRel);
+logoSizeRel         = paramFloat('logoSizeRel', logoSizeRel);
+showLogo            = paramBool('showLogo', showLogo);
+runClock            = paramBool('runClock', runClock);
+manualAngle         = paramFloat('manualAngle', manualAngle);
+
 // Reference background image for local use (ignored if not found)
 const bgImage = new Image();
 bgImage.src = 'bsk_klokke.png';
 let bgReady = false;
-// Additional scale factor for matching reference clock size
-let bgScaleRel = 1.073;
 
 // Center logo image (bsk.png) that rotates with the second hand
 const centerLogoImage = new Image();
@@ -243,12 +288,6 @@ let centerLogoReady = false;
 let centerLogoError = false;
 centerLogoImage.onload = () => { centerLogoReady = true; };
 centerLogoImage.onerror = () => { centerLogoError = true; };
-
-// Animation control
-let logoSizeRel = 0.038; // logo radius vs clock radius
-let showLogo = true;
-let runClock = true;
-let manualAngle = 0.25; // 0–1 turns
 
 bgImage.onload = () => { bgReady = true; };
 
@@ -322,7 +361,6 @@ function drawFace(size, r) {
 
     const outer = (s % 5 === 0) ? outerTickRadius : minorOuterRadius;
     const inner = (s % 5 === 0) ? majorInnerRadius : minorInnerRadius;
-    const len   = (s % 5 === 0) ? majorLen : minorLen;
     const widthRel = (s % 5 === 0) ? majorWidthRel : minorWidthRel;
 
     ctx.strokeStyle = 'white';
