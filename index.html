@@ -1,0 +1,539 @@
+<!doctype html>
+<html lang="no">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Analog pacing‑klokke</title>
+  <style>
+    body {
+      margin:0;
+      background:black;
+      display:flex;
+      justify-content:flex-start;
+      align-items:stretch;
+      height:100vh;
+      color:white;
+      font-family:Arial, sans-serif;
+      gap:24px;
+    }
+    #leftPanel {
+      display:flex;
+      flex-direction:column;
+      gap:16px;
+      padding:16px;
+      box-sizing:border-box;
+      width:260px;
+      max-width:40vw;
+    }
+    #rightPanel {
+      flex:1;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      min-height:100vh;
+      box-sizing:border-box;
+    }
+    #clock {
+      background:black;
+      display:block;
+    }
+    .groupTitle {
+      font-size:13px;
+      text-transform:uppercase;
+      letter-spacing:0.06em;
+      opacity:0.8;
+      margin-bottom:4px;
+    }
+    .controls {
+      font-size:14px;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+    }
+    .controls label {
+      display:flex;
+      flex-direction:column;
+      gap:2px;
+    }
+    .controls input[type="range"] {
+      width:100%;
+    }
+    .controls span.value {
+      font-size:11px;
+      opacity:0.8;
+    }
+  </style>
+</head>
+<body>
+  <div id="leftPanel">
+    <div>
+      <div class="groupTitle">Clock geometry (relative 0–1)</div>
+      <div class="controls" id="clockControls">
+        <label>
+          Outer size (vs screen height)
+          <input id="outerRelSlider" type="range" min="0.2" max="1" step="0.01" />
+          <span class="value" id="outerRelValue"></span>
+        </label>
+        <label>
+          Minor tick inner radius
+          <input id="minorInnerSlider" type="range" min="0" max="1" step="0.01" />
+          <span class="value" id="minorInnerValue"></span>
+        </label>
+        <label>
+          Major tick inner radius
+          <input id="majorInnerSlider" type="range" min="0" max="1" step="0.01" />
+          <span class="value" id="majorInnerValue"></span>
+        </label>
+        <label>
+          Minor tick outer radius
+          <input id="minorOuterRelSlider" type="range" min="0" max="1" step="0.01" />
+          <span class="value" id="minorOuterRelValue"></span>
+        </label>
+        <label>
+          Minor tick width (vs radius)
+          <input id="minorWidthRelSlider" type="range" min="0" max="0.1" step="0.001" />
+          <span class="value" id="minorWidthRelValue"></span>
+        </label>
+        <label>
+          Major tick width (vs radius)
+          <input id="majorWidthRelSlider" type="range" min="0" max="0.1" step="0.001" />
+          <span class="value" id="majorWidthRelValue"></span>
+        </label>
+      </div>
+    </div>
+
+    <div>
+      <div class="groupTitle">Hands & diamond (relative to clock radius)</div>
+      <div class="controls" id="handControls">
+        <label>
+          Shaft width (vs radius)
+          <input id="shaftWidthRelSlider" type="range" min="0" max="0.08" step="0.001" />
+          <span class="value" id="shaftWidthRelValue"></span>
+        </label>
+        <label>
+          Tip radius (0–1)
+          <input id="tipRelSlider" type="range" min="0.6" max="1" step="0.01" />
+          <span class="value" id="tipRelValue"></span>
+        </label>
+        <label>
+          Diamond base inset (vs radius)
+          <input id="diamondBaseInsetRelSlider" type="range" min="0" max="0.2" step="0.005" />
+          <span class="value" id="diamondBaseInsetRelValue"></span>
+        </label>
+        <label>
+          Diamond back (vs radius)
+          <input id="diamondBackRelSlider" type="range" min="0" max="0.2" step="0.005" />
+          <span class="value" id="diamondBackRelValue"></span>
+        </label>
+        <label>
+          Diamond width (vs radius)
+          <input id="diamondWidthRelSlider" type="range" min="0" max="0.4" step="0.005" />
+          <span class="value" id="diamondWidthRelValue"></span>
+        </label>
+      </div>
+    </div>
+
+    <div>
+      <div class="groupTitle">Numbers (relative)</div>
+      <div class="controls" id="numberControls">
+        <label>
+          Number radius (0–1)
+          <input id="numberRadiusRelSlider" type="range" min="0" max="1" step="0.01" />
+          <span class="value" id="numberRadiusRelValue"></span>
+        </label>
+        <label>
+          Number font size (vs radius)
+          <input id="numberFontRelSlider" type="range" min="0.02" max="0.2" step="0.005" />
+          <span class="value" id="numberFontRelValue"></span>
+        </label>
+      </div>
+    </div>
+
+    <div>
+      <div class="groupTitle">Reference image</div>
+      <div class="controls" id="bgControls">
+        <label>
+          Background scale
+          <input id="bgScaleRelSlider" type="range" min="0.9" max="1.1" step="0.001" />
+          <span class="value" id="bgScaleRelValue"></span>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <div id="rightPanel">
+    <canvas id="clock"></canvas>
+  </div>
+
+<script>
+const canvas = document.getElementById('clock');
+const ctx = canvas.getContext('2d');
+
+// ===== Relative configuration (all 0–1 where noted) =====
+// 1. Clock outer size: 1.0 = clock height equals current viewport height
+let outerRel = 0.8; // you can tune with slider
+
+// 2. Tick circles (relative to clock radius)
+let minorInnerRel = 0.82; // inner edge of small ticks
+let majorInnerRel = 0.78; // inner edge of large ticks
+let minorOuterRel = 1.0;  // outer edge of small ticks
+
+// 3. Tick widths (relative to clock radius)
+let minorWidthRel = 0.010;
+let majorWidthRel = 0.020;
+
+// 4. Number placement & font (relative to radius)
+let numberRadiusRel = 0.68;
+let numberFontRel   = 0.09;
+
+// 5. Hand/diamond parameters (all relative to clock radius)
+let shaftWidthRel       = 0.02; // thickness of shaft vs radius
+let tipRel              = 1.0;  // tip radius vs clock radius
+let diamondBaseInsetRel = 0.06; // how far diamond centre is inside tip radius
+let diamondBackRel      = 0.06; // how much inner tip is inside diamond centre
+let diamondWidthRel     = 0.14; // diamond width vs radius
+
+// Reference background image for local use (ignored if not found)
+const bgImage = new Image();
+bgImage.src = 'bsk_klokke.png';
+let bgReady = false;
+// Additional scale factor for matching reference clock size
+let bgScaleRel = 1.073;
+bgImage.onload = () => { bgReady = true; };
+
+function resizeCanvas() {
+  const vh = window.innerHeight || 800;
+  const clockDiameter = vh * outerRel;
+  const size = clockDiameter;
+  canvas.width = size;
+  canvas.height = size;
+  const r = size / 2;
+
+  // Reset transform and move origin to centre
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.translate(r, r);
+
+  return { size, r };
+}
+
+function drawBackground(size, r) {
+  if (!bgReady) return;
+
+  const iw = bgImage.width;
+  const ih = bgImage.height;
+  const cw = size;
+  const ch = size;
+
+  const imgAspect = iw / ih;
+  const canvasAspect = cw / ch;
+
+  let dw, dh, dx, dy;
+  if (imgAspect > canvasAspect) {
+    // Fit height, crop left/right
+    dh = ch;
+    dw = dh * imgAspect;
+  } else {
+    // Fit width, crop top/bottom
+    dw = cw;
+    dh = dw / imgAspect;
+  }
+
+  // Apply extra uniform scale to fine tune reference size
+  dw *= bgScaleRel;
+  dh *= bgScaleRel;
+
+  // Center the image after scaling
+  dx = (cw - dw) / 2;
+  dy = (ch - dh) / 2;
+
+  ctx.save();
+  ctx.globalAlpha = 0.3; // 0 online; set >0 locally if you want the overlay
+  ctx.drawImage(bgImage, -r + dx, -r + dy, dw, dh);
+  ctx.restore();
+}
+
+function drawFace(size, r) {
+  const clockRadius = r;                  // full clock radius
+  const outerTickRadius = clockRadius;    // outer end of all *major* ticks
+  const minorOuterRadius = clockRadius * minorOuterRel; // outer end of small ticks
+
+  // Derived radii
+  const minorInnerRadius = clockRadius * minorInnerRel;
+  const majorInnerRadius = clockRadius * majorInnerRel;
+
+  // Tick lengths
+  const minorLen = minorOuterRadius - minorInnerRadius;
+  const majorLen = outerTickRadius - majorInnerRadius;
+
+  // Second marks
+  for (let s = 0; s < 60; s++) {
+    const angle = (Math.PI * 2) * (s / 60) - Math.PI / 2;
+
+    const outer = (s % 5 === 0) ? outerTickRadius : minorOuterRadius;
+    const inner = (s % 5 === 0) ? majorInnerRadius : minorInnerRadius;
+    const len   = (s % 5 === 0) ? majorLen : minorLen;
+    const widthRel = (s % 5 === 0) ? majorWidthRel : minorWidthRel;
+
+    ctx.strokeStyle = 'white';
+    ctx.lineWidth = clockRadius * widthRel; // width relative to clock size
+
+    const xOuter = Math.cos(angle) * outer;
+    const yOuter = Math.sin(angle) * outer;
+    const xInner = Math.cos(angle) * inner;
+    const yInner = Math.sin(angle) * inner;
+
+    ctx.beginPath();
+    ctx.moveTo(xInner, yInner);
+    ctx.lineTo(xOuter, yOuter);
+    ctx.stroke();
+  }
+
+  // Numbers: 5, 10, ... 55, and 60 at the top
+  const numberRadius = clockRadius * numberRadiusRel;
+
+  ctx.fillStyle = 'white';
+  ctx.font = `${Math.round(clockRadius * numberFontRel)}px Arial`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  for (let s = 0; s < 60; s += 5) {
+    const angle = (Math.PI * 2) * (s / 60) - Math.PI / 2;
+    const x = Math.cos(angle) * numberRadius;
+    const y = Math.sin(angle) * numberRadius;
+
+    const label = (s === 0) ? '60' : String(s);
+    ctx.fillText(label, x, y);
+  }
+}
+
+function drawDiamondHand(angle, color, r) {
+  const clockRadius = r;
+
+  // Unit vectors along and perpendicular to the hand
+  const nx = Math.cos(angle);
+  const ny = Math.sin(angle);
+  const px = Math.cos(angle + Math.PI / 2);
+  const py = Math.sin(angle + Math.PI / 2);
+
+  const tipRadius = clockRadius * tipRel;
+  const diamondMidRadius  = tipRadius - clockRadius * diamondBaseInsetRel;
+  const diamondBackRadius = diamondMidRadius - clockRadius * diamondBackRel;
+  const shaftWidth        = clockRadius * shaftWidthRel;
+  const diamondWidth      = clockRadius * diamondWidthRel;
+
+  // ===== Shaft: from centre to *centre of the diamond* =====
+  const shaftEndX = nx * diamondMidRadius;
+  const shaftEndY = ny * diamondMidRadius;
+
+  ctx.strokeStyle = color;
+  ctx.lineWidth = shaftWidth;
+  ctx.lineCap = 'butt';
+
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.lineTo(shaftEndX, shaftEndY);
+  ctx.stroke();
+
+  // ===== Diamond head =====
+  const frontX = nx * tipRadius;            // outer tip on tick circle
+  const frontY = ny * tipRadius;
+
+  const backX  = nx * diamondBackRadius;    // inner tip towards centre
+  const backY  = ny * diamondBackRadius;
+
+  const midX   = nx * diamondMidRadius;     // centre of diamond (for left/right corners)
+  const midY   = ny * diamondMidRadius;
+
+  const halfW  = diamondWidth / 2;
+  const leftX  = midX + px * halfW;
+  const leftY  = midY + py * halfW;
+  const rightX = midX - px * halfW;
+  const rightY = midY - py * halfW;
+
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(frontX, frontY);   // outer tip
+  ctx.lineTo(leftX, leftY);     // left corner
+  ctx.lineTo(backX, backY);     // inner tip
+  ctx.lineTo(rightX, rightY);   // right corner
+  ctx.closePath();
+  ctx.fill();
+}
+
+function frame() {
+  const { size, r } = resizeCanvas();
+  ctx.clearRect(-r, -r, size, size);
+  drawBackground(size, r);
+  drawFace(size, r);
+
+  const t = new Date();
+  const sec = t.getSeconds() + t.getMilliseconds() / 1000;
+  const baseAngle = (Math.PI * 2) * (sec / 60) - Math.PI / 2;
+
+  drawDiamondHand(baseAngle,                   'blue',  r);    // up
+  drawDiamondHand(baseAngle + Math.PI / 2,     'yellow',r);    // right
+  drawDiamondHand(baseAngle + Math.PI,         'red',   r);    // down
+  drawDiamondHand(baseAngle + 3 * Math.PI / 2, 'green', r);    // left
+
+  requestAnimationFrame(frame);
+}
+
+frame();
+
+// ===== Slider wiring (all relative parameters) =====
+
+const outerRelSlider          = document.getElementById('outerRelSlider');
+const outerRelValue           = document.getElementById('outerRelValue');
+const minorInnerSlider        = document.getElementById('minorInnerSlider');
+const minorInnerValue         = document.getElementById('minorInnerValue');
+const majorInnerSlider        = document.getElementById('majorInnerSlider');
+const majorInnerValue         = document.getElementById('majorInnerValue');
+const minorOuterRelSlider     = document.getElementById('minorOuterRelSlider');
+const minorOuterRelValue      = document.getElementById('minorOuterRelValue');
+const minorWidthRelSlider     = document.getElementById('minorWidthRelSlider');
+const minorWidthRelValue      = document.getElementById('minorWidthRelValue');
+const majorWidthRelSlider     = document.getElementById('majorWidthRelSlider');
+const majorWidthRelValue      = document.getElementById('majorWidthRelValue');
+
+const shaftWidthRelSlider     = document.getElementById('shaftWidthRelSlider');
+const shaftWidthRelValue      = document.getElementById('shaftWidthRelValue');
+const tipRelSlider            = document.getElementById('tipRelSlider');
+const tipRelValue             = document.getElementById('tipRelValue');
+const diamondBaseInsetRelSlider = document.getElementById('diamondBaseInsetRelSlider');
+const diamondBaseInsetRelValue  = document.getElementById('diamondBaseInsetRelValue');
+const diamondBackRelSlider    = document.getElementById('diamondBackRelSlider');
+const diamondBackRelValue     = document.getElementById('diamondBackRelValue');
+const diamondWidthRelSlider   = document.getElementById('diamondWidthRelSlider');
+const diamondWidthRelValue    = document.getElementById('diamondWidthRelValue');
+
+const numberRadiusRelSlider   = document.getElementById('numberRadiusRelSlider');
+const numberRadiusRelValue    = document.getElementById('numberRadiusRelValue');
+const numberFontRelSlider     = document.getElementById('numberFontRelSlider');
+const numberFontRelValue      = document.getElementById('numberFontRelValue');
+
+const bgScaleRelSlider        = document.getElementById('bgScaleRelSlider');
+const bgScaleRelValue         = document.getElementById('bgScaleRelValue');
+
+function syncControls() {
+  outerRelSlider.value          = outerRel;
+  outerRelValue.textContent     = outerRel.toFixed(3);
+
+  minorInnerSlider.value        = minorInnerRel;
+  minorInnerValue.textContent   = minorInnerRel.toFixed(3);
+
+  majorInnerSlider.value        = majorInnerRel;
+  majorInnerValue.textContent   = majorInnerRel.toFixed(3);
+
+  minorOuterRelSlider.value     = minorOuterRel;
+  minorOuterRelValue.textContent= minorOuterRel.toFixed(3);
+
+  minorWidthRelSlider.value     = minorWidthRel;
+  minorWidthRelValue.textContent= minorWidthRel.toFixed(3);
+
+  majorWidthRelSlider.value     = majorWidthRel;
+  majorWidthRelValue.textContent= majorWidthRel.toFixed(3);
+
+  shaftWidthRelSlider.value     = shaftWidthRel;
+  shaftWidthRelValue.textContent= shaftWidthRel.toFixed(3);
+
+  tipRelSlider.value            = tipRel;
+  tipRelValue.textContent       = tipRel.toFixed(3);
+
+  diamondBaseInsetRelSlider.value  = diamondBaseInsetRel;
+  diamondBaseInsetRelValue.textContent = diamondBaseInsetRel.toFixed(3);
+
+  diamondBackRelSlider.value    = diamondBackRel;
+  diamondBackRelValue.textContent = diamondBackRel.toFixed(3);
+
+  diamondWidthRelSlider.value   = diamondWidthRel;
+  diamondWidthRelValue.textContent = diamondWidthRel.toFixed(3);
+
+  numberRadiusRelSlider.value   = numberRadiusRel;
+  numberRadiusRelValue.textContent = numberRadiusRel.toFixed(3);
+
+  numberFontRelSlider.value     = numberFontRel;
+  numberFontRelValue.textContent = numberFontRel.toFixed(3);
+
+  bgScaleRelSlider.value        = bgScaleRel;
+  bgScaleRelValue.textContent   = bgScaleRel.toFixed(3);
+}
+
+outerRelSlider.addEventListener('input', () => {
+  outerRel = parseFloat(outerRelSlider.value);
+  outerRelValue.textContent = outerRel.toFixed(3);
+});
+
+minorInnerSlider.addEventListener('input', () => {
+  minorInnerRel = parseFloat(minorInnerSlider.value);
+  minorInnerValue.textContent = minorInnerRel.toFixed(3);
+});
+
+majorInnerSlider.addEventListener('input', () => {
+  majorInnerRel = parseFloat(majorInnerSlider.value);
+  majorInnerValue.textContent = majorInnerRel.toFixed(3);
+});
+
+minorOuterRelSlider.addEventListener('input', () => {
+  minorOuterRel = parseFloat(minorOuterRelSlider.value);
+  minorOuterRelValue.textContent = minorOuterRel.toFixed(3);
+});
+
+minorWidthRelSlider.addEventListener('input', () => {
+  minorWidthRel = parseFloat(minorWidthRelSlider.value);
+  minorWidthRelValue.textContent = minorWidthRel.toFixed(3);
+});
+
+majorWidthRelSlider.addEventListener('input', () => {
+  majorWidthRel = parseFloat(majorWidthRelSlider.value);
+  majorWidthRelValue.textContent = majorWidthRel.toFixed(3);
+});
+
+shaftWidthRelSlider.addEventListener('input', () => {
+  shaftWidthRel = parseFloat(shaftWidthRelSlider.value);
+  shaftWidthRelValue.textContent = shaftWidthRel.toFixed(3);
+});
+
+tipRelSlider.addEventListener('input', () => {
+  tipRel = parseFloat(tipRelSlider.value);
+  tipRelValue.textContent = tipRel.toFixed(3);
+});
+
+diamondBaseInsetRelSlider.addEventListener('input', () => {
+  diamondBaseInsetRel = parseFloat(diamondBaseInsetRelSlider.value);
+  diamondBaseInsetRelValue.textContent = diamondBaseInsetRel.toFixed(3);
+});
+
+diamondBackRelSlider.addEventListener('input', () => {
+  diamondBackRel = parseFloat(diamondBackRelSlider.value);
+  diamondBackRelValue.textContent = diamondBackRel.toFixed(3);
+});
+
+diamondWidthRelSlider.addEventListener('input', () => {
+  diamondWidthRel = parseFloat(diamondWidthRelSlider.value);
+  diamondWidthRelValue.textContent = diamondWidthRel.toFixed(3);
+});
+
+numberRadiusRelSlider.addEventListener('input', () => {
+  numberRadiusRel = parseFloat(numberRadiusRelSlider.value);
+  numberRadiusRelValue.textContent = numberRadiusRel.toFixed(3);
+});
+
+numberFontRelSlider.addEventListener('input', () => {
+  numberFontRel = parseFloat(numberFontRelSlider.value);
+  numberFontRelValue.textContent = numberFontRel.toFixed(3);
+});
+
+bgScaleRelSlider.addEventListener('input', () => {
+  bgScaleRel = parseFloat(bgScaleRelSlider.value);
+  bgScaleRelValue.textContent = bgScaleRel.toFixed(3);
+});
+
+syncControls();
+
+// Re-run layout on resize to honour outerRel
+window.addEventListener('resize', () => {
+  // Next frame() call will pick up the new size
+});
+</script>
+</body>
+</html>
