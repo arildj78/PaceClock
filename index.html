@@ -17,7 +17,7 @@
       gap:24px;
     }
     #leftPanel {
-      display:flex;
+      display:none; /* hidden by default; can be enabled via URL flag */
       flex-direction:column;
       gap:16px;
       padding:16px;
@@ -195,6 +195,12 @@
 <script>
 const canvas = document.getElementById('clock');
 const ctx = canvas.getContext('2d');
+const leftPanel = document.getElementById('leftPanel');
+
+// Show setup sliders only when URL contains the token "setupmode"
+const url = window.location.href;
+const showSetupPanel = url.includes('setupmode');
+leftPanel.style.display = showSetupPanel ? 'flex' : 'none';
 
 // ===== Relative configuration (all 0–1 where noted) =====
 // 1. Clock outer size: 1.0 = clock height equals current viewport height
@@ -292,7 +298,7 @@ function drawBackground(size, r) {
   dy = (ch - dh) / 2;
 
   ctx.save();
-  ctx.globalAlpha = 0.0; // set 0 online; >0 locally if you want the overlay
+  ctx.globalAlpha = 0.0; // set >0 locally if you want the overlay
   ctx.drawImage(bgImage, -r + dx, -r + dy, dw, dh);
   ctx.restore();
 }
@@ -545,11 +551,10 @@ function syncControls() {
 
   runClockCheckbox.checked      = runClock;
   showLogoCheckbox.checked      = showLogo;
-  logoSizeRelSlider.value      = logoSizeRel;
-  logoSizeRelValue.textContent = logoSizeRel.toFixed(3);
+  logoSizeRelSlider.value       = logoSizeRel;
+  logoSizeRelValue.textContent  = logoSizeRel.toFixed(3);
   manualAngleSlider.value       = manualAngle;
   manualAngleSlider.disabled    = runClock;
-  // showLogo checkbox is independent
   manualAngleValue.textContent  = manualAngle.toFixed(3);
 }
 
