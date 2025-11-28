@@ -176,6 +176,14 @@
           <input id="manualAngleSlider" type="range" min="0" max="1" step="0.001" />
           <span class="value" id="manualAngleValue"></span>
         </label>
+        <label style="flex-direction:row;align-items:center;gap:8px;">
+          <input id="showLogoCheckbox" type="checkbox" checked /> Show rotating logo
+        </label>
+        <label>
+          Logo size (relative)
+          <input id="logoSizeRelSlider" type="range" min="0" max="0.2" step="0.001" />
+          <span class="value" id="logoSizeRelValue"></span>
+        </label>
       </div>
     </div>
   </div>
@@ -209,8 +217,8 @@ let numberFontRel   = 0.20;
 let centerCircleRel = 0.038;
 
 // 5. Hand/diamond parameters (all relative to clock radius)
-let shaftWidthRel       = 0.04; // thickness of shaft vs radius
-let tipRel              = 0.986;  // tip radius vs clock radius
+let shaftWidthRel       = 0.04;  // thickness of shaft vs radius
+let tipRel              = 0.986; // tip radius vs clock radius
 let diamondBaseInsetRel = 0.247; // how far diamond centre is inside tip radius
 let diamondBackRel      = 0.025; // how much inner tip is inside diamond centre
 let diamondWidthRel     = 0.098; // diamond width vs radius
@@ -222,7 +230,17 @@ let bgReady = false;
 // Additional scale factor for matching reference clock size
 let bgScaleRel = 1.073;
 
+// Center logo image (bsk.png) that rotates with the second hand
+const centerLogoImage = new Image();
+centerLogoImage.src = 'bsk.png';
+let centerLogoReady = false;
+let centerLogoError = false;
+centerLogoImage.onload = () => { centerLogoReady = true; };
+centerLogoImage.onerror = () => { centerLogoError = true; };
+
 // Animation control
+let logoSizeRel = 0.038; // logo radius vs clock radius
+let showLogo = true;
 let runClock = true;
 let manualAngle = 0.25; // 0–1 turns
 
@@ -387,14 +405,25 @@ function drawDiamondHand(angle, color, r) {
   ctx.fill();
 }
 
-function drawCenterCircle(r) {
+// Draw either the rotating logo (if available) or the static center circle
+function drawCenterElement(r, baseAngle) {
   const clockRadius = r;
-  const centerRadius = clockRadius * centerCircleRel;
-  ctx.fillStyle = '#E1CD92';
-  ctx.beginPath();
-  ctx.arc(0, 0, centerRadius, 0, Math.PI * 2);
-  ctx.closePath();
-  ctx.fill();
+  const centerRadius = clockRadius * centerCircleRel; // circle behind
+  const logoRadius   = clockRadius * logoSizeRel;     // logo size vs full clock radius
+
+  if (showLogo && centerLogoReady && !centerLogoError) {
+    ctx.save();
+    ctx.rotate(baseAngle);
+    const size = logoRadius * 2;
+    ctx.drawImage(centerLogoImage, -logoRadius, -logoRadius, size, size);
+    ctx.restore();
+  } else {
+    ctx.fillStyle = '#E1CD92';
+    ctx.beginPath();
+    ctx.arc(0, 0, centerRadius, 0, Math.PI * 2);
+    ctx.closePath();
+    ctx.fill();
+  }
 }
 
 function frame() {
@@ -417,8 +446,8 @@ function frame() {
   drawDiamondHand(baseAngle + Math.PI,         'red',   r);    // down
   drawDiamondHand(baseAngle + 3 * Math.PI / 2, 'green', r);    // left
 
-  // Center cap on top of all hands
-  drawCenterCircle(r);
+  // Center element on top of all hands (logo or circle)
+  drawCenterElement(r, baseAngle);
 
   requestAnimationFrame(frame);
 }
@@ -464,6 +493,9 @@ const bgScaleRelValue         = document.getElementById('bgScaleRelValue');
 const runClockCheckbox        = document.getElementById('runClockCheckbox');
 const manualAngleSlider       = document.getElementById('manualAngleSlider');
 const manualAngleValue        = document.getElementById('manualAngleValue');
+const showLogoCheckbox        = document.getElementById('showLogoCheckbox');
+const logoSizeRelSlider       = document.getElementById('logoSizeRelSlider');
+const logoSizeRelValue        = document.getElementById('logoSizeRelValue');
 
 function syncControls() {
   outerRelSlider.value          = outerRel;
@@ -512,8 +544,12 @@ function syncControls() {
   bgScaleRelValue.textContent   = bgScaleRel.toFixed(3);
 
   runClockCheckbox.checked      = runClock;
+  showLogoCheckbox.checked      = showLogo;
+  logoSizeRelSlider.value      = logoSizeRel;
+  logoSizeRelValue.textContent = logoSizeRel.toFixed(3);
   manualAngleSlider.value       = manualAngle;
   manualAngleSlider.disabled    = runClock;
+  // showLogo checkbox is independent
   manualAngleValue.textContent  = manualAngle.toFixed(3);
 }
 
@@ -595,6 +631,15 @@ bgScaleRelSlider.addEventListener('input', () => {
 runClockCheckbox.addEventListener('change', () => {
   runClock = runClockCheckbox.checked;
   manualAngleSlider.disabled = runClock;
+});
+
+showLogoCheckbox.addEventListener('change', () => {
+  showLogo = showLogoCheckbox.checked;
+});
+
+logoSizeRelSlider.addEventListener('input', () => {
+  logoSizeRel = parseFloat(logoSizeRelSlider.value);
+  logoSizeRelValue.textContent = logoSizeRel.toFixed(3);
 });
 
 manualAngleSlider.addEventListener('input', () => {
