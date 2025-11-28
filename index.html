@@ -71,22 +71,22 @@
       <div class="controls" id="clockControls">
         <label>
           Outer size (vs screen height)
-          <input id="outerRelSlider" type="range" min="0.2" max="1" step="0.01" />
+          <input id="outerRelSlider" type="range" min="0.2" max="1" step="0.001" />
           <span class="value" id="outerRelValue"></span>
         </label>
         <label>
           Minor tick inner radius
-          <input id="minorInnerSlider" type="range" min="0" max="1" step="0.01" />
+          <input id="minorInnerSlider" type="range" min="0.5" max="1" step="0.001" />
           <span class="value" id="minorInnerValue"></span>
         </label>
         <label>
           Major tick inner radius
-          <input id="majorInnerSlider" type="range" min="0" max="1" step="0.01" />
+          <input id="majorInnerSlider" type="range" min="0.5" max="1" step="0.001" />
           <span class="value" id="majorInnerValue"></span>
         </label>
         <label>
           Minor tick outer radius
-          <input id="minorOuterRelSlider" type="range" min="0" max="1" step="0.01" />
+          <input id="minorOuterRelSlider" type="range" min="0.5" max="1" step="0.001" />
           <span class="value" id="minorOuterRelValue"></span>
         </label>
         <label>
@@ -112,12 +112,12 @@
         </label>
         <label>
           Tip radius (0–1)
-          <input id="tipRelSlider" type="range" min="0.6" max="1" step="0.01" />
+          <input id="tipRelSlider" type="range" min="0.7" max="1" step="0.001" />
           <span class="value" id="tipRelValue"></span>
         </label>
         <label>
           Diamond base inset (vs radius)
-          <input id="diamondBaseInsetRelSlider" type="range" min="0" max="0.2" step="0.005" />
+          <input id="diamondBaseInsetRelSlider" type="range" min="0" max="0.4" step="0.001" />
           <span class="value" id="diamondBaseInsetRelValue"></span>
         </label>
         <label>
@@ -127,7 +127,7 @@
         </label>
         <label>
           Diamond width (vs radius)
-          <input id="diamondWidthRelSlider" type="range" min="0" max="0.4" step="0.005" />
+          <input id="diamondWidthRelSlider" type="range" min="0" max="0.2" step="0.001" />
           <span class="value" id="diamondWidthRelValue"></span>
         </label>
       </div>
@@ -143,7 +143,7 @@
         </label>
         <label>
           Number font size (vs radius)
-          <input id="numberFontRelSlider" type="range" min="0.02" max="0.2" step="0.005" />
+          <input id="numberFontRelSlider" type="range" min="0.02" max="0.3" step="0.001" />
           <span class="value" id="numberFontRelValue"></span>
         </label>
       </div>
@@ -159,6 +159,20 @@
         </label>
       </div>
     </div>
+
+    <div>
+      <div class="groupTitle">Animation control</div>
+      <div class="controls" id="animControls">
+        <label style="flex-direction:row;align-items:center;gap:8px;">
+          <input id="runClockCheckbox" type="checkbox" checked /> Run clock
+        </label>
+        <label>
+          Manual dial angle (0–1 turns)
+          <input id="manualAngleSlider" type="range" min="0" max="1" step="0.001" />
+          <span class="value" id="manualAngleValue"></span>
+        </label>
+      </div>
+    </div>
   </div>
 
   <div id="rightPanel">
@@ -171,27 +185,27 @@ const ctx = canvas.getContext('2d');
 
 // ===== Relative configuration (all 0–1 where noted) =====
 // 1. Clock outer size: 1.0 = clock height equals current viewport height
-let outerRel = 0.8; // you can tune with slider
+let outerRel = 0.95; // you can tune with slider
 
 // 2. Tick circles (relative to clock radius)
-let minorInnerRel = 0.82; // inner edge of small ticks
-let majorInnerRel = 0.78; // inner edge of large ticks
-let minorOuterRel = 1.0;  // outer edge of small ticks
+let minorInnerRel = 0.816; // inner edge of small ticks
+let majorInnerRel = 0.774; // inner edge of large ticks
+let minorOuterRel = 0.955;  // outer edge of small ticks
 
 // 3. Tick widths (relative to clock radius)
-let minorWidthRel = 0.010;
-let majorWidthRel = 0.020;
+let minorWidthRel = 0.009;
+let majorWidthRel = 0.026;
 
 // 4. Number placement & font (relative to radius)
 let numberRadiusRel = 0.68;
 let numberFontRel   = 0.09;
 
 // 5. Hand/diamond parameters (all relative to clock radius)
-let shaftWidthRel       = 0.02; // thickness of shaft vs radius
-let tipRel              = 1.0;  // tip radius vs clock radius
-let diamondBaseInsetRel = 0.06; // how far diamond centre is inside tip radius
-let diamondBackRel      = 0.06; // how much inner tip is inside diamond centre
-let diamondWidthRel     = 0.14; // diamond width vs radius
+let shaftWidthRel       = 0.04; // thickness of shaft vs radius
+let tipRel              = 0.986;  // tip radius vs clock radius
+let diamondBaseInsetRel = 0.247; // how far diamond centre is inside tip radius
+let diamondBackRel      = 0.025; // how much inner tip is inside diamond centre
+let diamondWidthRel     = 0.098; // diamond width vs radius
 
 // Reference background image for local use (ignored if not found)
 const bgImage = new Image();
@@ -199,6 +213,11 @@ bgImage.src = 'bsk_klokke.png';
 let bgReady = false;
 // Additional scale factor for matching reference clock size
 let bgScaleRel = 1.073;
+
+// Animation control
+let runClock = true;
+let manualAngle = 0.25; // 0–1 turns
+
 bgImage.onload = () => { bgReady = true; };
 
 function resizeCanvas() {
@@ -247,7 +266,7 @@ function drawBackground(size, r) {
   dy = (ch - dh) / 2;
 
   ctx.save();
-  ctx.globalAlpha = 0.3; // 0 online; set >0 locally if you want the overlay
+  ctx.globalAlpha = 0.3; // set 0 online; >0 locally if you want the overlay
   ctx.drawImage(bgImage, -r + dx, -r + dy, dw, dh);
   ctx.restore();
 }
@@ -366,9 +385,14 @@ function frame() {
   drawBackground(size, r);
   drawFace(size, r);
 
-  const t = new Date();
-  const sec = t.getSeconds() + t.getMilliseconds() / 1000;
-  const baseAngle = (Math.PI * 2) * (sec / 60) - Math.PI / 2;
+  let baseAngle;
+  if (runClock) {
+    const t = new Date();
+    const sec = t.getSeconds() + t.getMilliseconds() / 1000;
+    baseAngle = (Math.PI * 2) * (sec / 60) - Math.PI / 2;
+  } else {
+    baseAngle = (Math.PI * 2) * manualAngle - Math.PI / 2;
+  }
 
   drawDiamondHand(baseAngle,                   'blue',  r);    // up
   drawDiamondHand(baseAngle + Math.PI / 2,     'yellow',r);    // right
@@ -414,6 +438,10 @@ const numberFontRelValue      = document.getElementById('numberFontRelValue');
 const bgScaleRelSlider        = document.getElementById('bgScaleRelSlider');
 const bgScaleRelValue         = document.getElementById('bgScaleRelValue');
 
+const runClockCheckbox        = document.getElementById('runClockCheckbox');
+const manualAngleSlider       = document.getElementById('manualAngleSlider');
+const manualAngleValue        = document.getElementById('manualAngleValue');
+
 function syncControls() {
   outerRelSlider.value          = outerRel;
   outerRelValue.textContent     = outerRel.toFixed(3);
@@ -456,6 +484,11 @@ function syncControls() {
 
   bgScaleRelSlider.value        = bgScaleRel;
   bgScaleRelValue.textContent   = bgScaleRel.toFixed(3);
+
+  runClockCheckbox.checked      = runClock;
+  manualAngleSlider.value       = manualAngle;
+  manualAngleSlider.disabled    = runClock;
+  manualAngleValue.textContent  = manualAngle.toFixed(3);
 }
 
 outerRelSlider.addEventListener('input', () => {
@@ -526,6 +559,16 @@ numberFontRelSlider.addEventListener('input', () => {
 bgScaleRelSlider.addEventListener('input', () => {
   bgScaleRel = parseFloat(bgScaleRelSlider.value);
   bgScaleRelValue.textContent = bgScaleRel.toFixed(3);
+});
+
+runClockCheckbox.addEventListener('change', () => {
+  runClock = runClockCheckbox.checked;
+  manualAngleSlider.disabled = runClock;
+});
+
+manualAngleSlider.addEventListener('input', () => {
+  manualAngle = parseFloat(manualAngleSlider.value);
+  manualAngleValue.textContent = manualAngle.toFixed(3);
 });
 
 syncControls();
