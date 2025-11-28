@@ -186,6 +186,14 @@
         </label>
       </div>
     </div>
+
+    <div>
+      <div class="groupTitle">Share / link</div>
+      <div class="controls">
+        <button id="copyUrlButton" type="button">Copy URL for this setup</button>
+        <span class="value" id="copyUrlStatus"></span>
+      </div>
+    </div>
   </div>
 
   <div id="rightPanel">
@@ -222,38 +230,47 @@ function paramBool(name, current) {
 }
 
 // ===== Relative configuration (all 0–1 where noted) =====
-// 1. Clock outer size: 1.0 = clock height equals current viewport height
-let outerRel = 0.95; // you can tune with slider
+// Defaults
+const DEFAULT_outerRel            = 0.95;
+const DEFAULT_minorInnerRel       = 0.816;
+const DEFAULT_majorInnerRel       = 0.774;
+const DEFAULT_minorOuterRel       = 0.955;
+const DEFAULT_minorWidthRel       = 0.009;
+const DEFAULT_majorWidthRel       = 0.026;
+const DEFAULT_numberRadiusRel     = 0.63;
+const DEFAULT_numberFontRel       = 0.20;
+const DEFAULT_centerCircleRel     = 0.038;
+const DEFAULT_shaftWidthRel       = 0.04;
+const DEFAULT_tipRel              = 0.986;
+const DEFAULT_diamondBaseInsetRel = 0.247;
+const DEFAULT_diamondBackRel      = 0.025;
+const DEFAULT_diamondWidthRel     = 0.098;
+const DEFAULT_bgScaleRel          = 1.073;
+const DEFAULT_logoSizeRel         = 0.038;
+const DEFAULT_showLogo            = true;
+const DEFAULT_runClock            = true;
+const DEFAULT_manualAngle         = 0.25;
 
-// 2. Tick circles (relative to clock radius)
-let minorInnerRel = 0.816; // inner edge of small ticks
-let majorInnerRel = 0.774; // inner edge of large ticks
-let minorOuterRel = 0.955;  // outer edge of small ticks
-
-// 3. Tick widths (relative to clock radius)
-let minorWidthRel = 0.009;
-let majorWidthRel = 0.026;
-
-// 4. Number placement & font (relative to radius)
-let numberRadiusRel = 0.63;
-let numberFontRel   = 0.20;
-
-// 4b. Center circle (relative radius)
-let centerCircleRel = 0.038;
-
-// 5. Hand/diamond parameters (all relative to clock radius)
-let shaftWidthRel       = 0.04;  // thickness of shaft vs radius
-let tipRel              = 0.986; // tip radius vs clock radius
-let diamondBaseInsetRel = 0.247; // how far diamond centre is inside tip radius
-let diamondBackRel      = 0.025; // how much inner tip is inside diamond centre
-let diamondWidthRel     = 0.098; // diamond width vs radius
-
-// 6. Background and logo parameters
-let bgScaleRel   = 1.073; // scale factor for reference image
-let logoSizeRel  = 0.038; // logo radius vs clock radius
-let showLogo     = true;
-let runClock     = true;
-let manualAngle  = 0.25;  // 0–1 turns
+// Live values (start at defaults)
+let outerRel            = DEFAULT_outerRel;
+let minorInnerRel       = DEFAULT_minorInnerRel;
+let majorInnerRel       = DEFAULT_majorInnerRel;
+let minorOuterRel       = DEFAULT_minorOuterRel;
+let minorWidthRel       = DEFAULT_minorWidthRel;
+let majorWidthRel       = DEFAULT_majorWidthRel;
+let numberRadiusRel     = DEFAULT_numberRadiusRel;
+let numberFontRel       = DEFAULT_numberFontRel;
+let centerCircleRel     = DEFAULT_centerCircleRel;
+let shaftWidthRel       = DEFAULT_shaftWidthRel;
+let tipRel              = DEFAULT_tipRel;
+let diamondBaseInsetRel = DEFAULT_diamondBaseInsetRel;
+let diamondBackRel      = DEFAULT_diamondBackRel;
+let diamondWidthRel     = DEFAULT_diamondWidthRel;
+let bgScaleRel          = DEFAULT_bgScaleRel;
+let logoSizeRel         = DEFAULT_logoSizeRel;
+let showLogo            = DEFAULT_showLogo;
+let runClock            = DEFAULT_runClock;
+let manualAngle         = DEFAULT_manualAngle;
 
 // Apply URL overrides (if provided)
 outerRel            = paramFloat('outerRel', outerRel);
@@ -540,6 +557,8 @@ const manualAngleValue        = document.getElementById('manualAngleValue');
 const showLogoCheckbox        = document.getElementById('showLogoCheckbox');
 const logoSizeRelSlider       = document.getElementById('logoSizeRelSlider');
 const logoSizeRelValue        = document.getElementById('logoSizeRelValue');
+const copyUrlButton           = document.getElementById('copyUrlButton');
+const copyUrlStatus           = document.getElementById('copyUrlStatus');
 
 function syncControls() {
   outerRelSlider.value          = outerRel;
@@ -688,6 +707,69 @@ logoSizeRelSlider.addEventListener('input', () => {
 manualAngleSlider.addEventListener('input', () => {
   manualAngle = parseFloat(manualAngleSlider.value);
   manualAngleValue.textContent = manualAngle.toFixed(3);
+});
+
+function buildConfigUrl() {
+  const base = window.location.origin + window.location.pathname;
+  const qs = new URLSearchParams();
+
+  // Do NOT include setupmode in generated production URLs
+// (setupmode is only for design-time editing)
+// Therefore: do NOT set it here.
+
+  const addFloat = (name, current, def, precision = 3) => {
+    if (Math.abs(current - def) > 1e-6) {
+      qs.set(name, current.toFixed(precision));
+    }
+  };
+
+  const addBool = (name, current, def) => {
+    if (current !== def) {
+      qs.set(name, current ? '1' : '0');
+    }
+  };
+
+  addFloat('outerRel',            outerRel,            DEFAULT_outerRel);
+  addFloat('minorInnerRel',       minorInnerRel,       DEFAULT_minorInnerRel);
+  addFloat('majorInnerRel',       majorInnerRel,       DEFAULT_majorInnerRel);
+  addFloat('minorOuterRel',       minorOuterRel,       DEFAULT_minorOuterRel);
+  addFloat('minorWidthRel',       minorWidthRel,       DEFAULT_minorWidthRel);
+  addFloat('majorWidthRel',       majorWidthRel,       DEFAULT_majorWidthRel);
+  addFloat('numberRadiusRel',     numberRadiusRel,     DEFAULT_numberRadiusRel);
+  addFloat('numberFontRel',       numberFontRel,       DEFAULT_numberFontRel);
+  addFloat('centerCircleRel',     centerCircleRel,     DEFAULT_centerCircleRel);
+  addFloat('shaftWidthRel',       shaftWidthRel,       DEFAULT_shaftWidthRel);
+  addFloat('tipRel',              tipRel,              DEFAULT_tipRel);
+  addFloat('diamondBaseInsetRel', diamondBaseInsetRel, DEFAULT_diamondBaseInsetRel);
+  addFloat('diamondBackRel',      diamondBackRel,      DEFAULT_diamondBackRel);
+  addFloat('diamondWidthRel',     diamondWidthRel,     DEFAULT_diamondWidthRel);
+  addFloat('bgScaleRel',          bgScaleRel,          DEFAULT_bgScaleRel);
+  addFloat('logoSizeRel',         logoSizeRel,         DEFAULT_logoSizeRel);
+  addFloat('manualAngle',         manualAngle,         DEFAULT_manualAngle, 4);
+
+  addBool('showLogo', showLogo, DEFAULT_showLogo);
+  addBool('runClock', runClock, DEFAULT_runClock);
+
+  const query = qs.toString();
+  return query ? `${base}?${query}` : base;
+}
+
+copyUrlButton.addEventListener('click', () => {
+  const link = buildConfigUrl();
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(link)
+      .then(() => {
+        copyUrlStatus.textContent = 'Copied URL';
+        setTimeout(() => { copyUrlStatus.textContent = ''; }, 2000);
+      })
+      .catch(() => {
+        copyUrlStatus.textContent = 'Copy failed';
+        setTimeout(() => { copyUrlStatus.textContent = ''; }, 2000);
+      });
+  } else {
+    // Fallback: simple prompt
+    window.prompt('Copy this URL:', link);
+  }
 });
 
 syncControls();
