@@ -130,6 +130,11 @@
           <input id="diamondWidthRelSlider" type="range" min="0" max="0.2" step="0.001" />
           <span class="value" id="diamondWidthRelValue"></span>
         </label>
+        <label>
+          Center circle radius (vs radius)
+          <input id="centerCircleRelSlider" type="range" min="0" max="0.2" step="0.001" />
+          <span class="value" id="centerCircleRelValue"></span>
+        </label>
       </div>
     </div>
 
@@ -200,6 +205,9 @@ let majorWidthRel = 0.026;
 let numberRadiusRel = 0.63;
 let numberFontRel   = 0.20;
 
+// 4b. Center circle (relative radius)
+let centerCircleRel = 0.038;
+
 // 5. Hand/diamond parameters (all relative to clock radius)
 let shaftWidthRel       = 0.04; // thickness of shaft vs radius
 let tipRel              = 0.986;  // tip radius vs clock radius
@@ -266,7 +274,7 @@ function drawBackground(size, r) {
   dy = (ch - dh) / 2;
 
   ctx.save();
-  ctx.globalAlpha = 0.3; // set 0 online; >0 locally if you want the overlay
+  ctx.globalAlpha = 0.0; // set 0 online; >0 locally if you want the overlay
   ctx.drawImage(bgImage, -r + dx, -r + dy, dw, dh);
   ctx.restore();
 }
@@ -379,6 +387,16 @@ function drawDiamondHand(angle, color, r) {
   ctx.fill();
 }
 
+function drawCenterCircle(r) {
+  const clockRadius = r;
+  const centerRadius = clockRadius * centerCircleRel;
+  ctx.fillStyle = '#E1CD92';
+  ctx.beginPath();
+  ctx.arc(0, 0, centerRadius, 0, Math.PI * 2);
+  ctx.closePath();
+  ctx.fill();
+}
+
 function frame() {
   const { size, r } = resizeCanvas();
   ctx.clearRect(-r, -r, size, size);
@@ -398,6 +416,9 @@ function frame() {
   drawDiamondHand(baseAngle + Math.PI / 2,     'yellow',r);    // right
   drawDiamondHand(baseAngle + Math.PI,         'red',   r);    // down
   drawDiamondHand(baseAngle + 3 * Math.PI / 2, 'green', r);    // left
+
+  // Center cap on top of all hands
+  drawCenterCircle(r);
 
   requestAnimationFrame(frame);
 }
@@ -429,6 +450,8 @@ const diamondBackRelSlider    = document.getElementById('diamondBackRelSlider');
 const diamondBackRelValue     = document.getElementById('diamondBackRelValue');
 const diamondWidthRelSlider   = document.getElementById('diamondWidthRelSlider');
 const diamondWidthRelValue    = document.getElementById('diamondWidthRelValue');
+const centerCircleRelSlider   = document.getElementById('centerCircleRelSlider');
+const centerCircleRelValue    = document.getElementById('centerCircleRelValue');
 
 const numberRadiusRelSlider   = document.getElementById('numberRadiusRelSlider');
 const numberRadiusRelValue    = document.getElementById('numberRadiusRelValue');
@@ -475,6 +498,9 @@ function syncControls() {
 
   diamondWidthRelSlider.value   = diamondWidthRel;
   diamondWidthRelValue.textContent = diamondWidthRel.toFixed(3);
+
+  centerCircleRelSlider.value   = centerCircleRel;
+  centerCircleRelValue.textContent = centerCircleRel.toFixed(3);
 
   numberRadiusRelSlider.value   = numberRadiusRel;
   numberRadiusRelValue.textContent = numberRadiusRel.toFixed(3);
@@ -544,6 +570,11 @@ diamondBackRelSlider.addEventListener('input', () => {
 diamondWidthRelSlider.addEventListener('input', () => {
   diamondWidthRel = parseFloat(diamondWidthRelSlider.value);
   diamondWidthRelValue.textContent = diamondWidthRel.toFixed(3);
+});
+
+centerCircleRelSlider.addEventListener('input', () => {
+  centerCircleRel = parseFloat(centerCircleRelSlider.value);
+  centerCircleRelValue.textContent = centerCircleRel.toFixed(3);
 });
 
 numberRadiusRelSlider.addEventListener('input', () => {
