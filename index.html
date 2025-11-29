@@ -76,7 +76,7 @@
 <body>
   <div id="leftPanel">
   <details>
-      <summary class="groupTitle">Clock geometry (relative 0–1)</summary>
+      <summary class="groupTitle">Clock geometry</summary>
       <div class="controls" id="clockControls">
         <label>
           Outer size (vs screen height)
@@ -84,29 +84,27 @@
           <span class="value" id="outerRelValue"></span>
         </label>
         <label>
-          Minor tick inner radius
-          <input id="minorInnerSlider" type="range" min="0.5" max="1" step="0.001" />
-          <span class="value" id="minorInnerValue"></span>
-        </label>
-        <label>
           Major tick inner radius
           <input id="majorInnerSlider" type="range" min="0.5" max="1" step="0.001" />
           <span class="value" id="majorInnerValue"></span>
-        </label>
+        </label>       
         <label>
           Minor tick outer radius
           <input id="minorOuterRelSlider" type="range" min="0.5" max="1" step="0.001" />
           <span class="value" id="minorOuterRelValue"></span>
         </label>
-        <label>
-          Minor tick width (vs radius)
-          <input id="minorWidthRelSlider" type="range" min="0" max="0.1" step="0.001" />
-          <span class="value" id="minorWidthRelValue"></span>
+          Minor tick inner radius
+          <input id="minorInnerSlider" type="range" min="0.5" max="1" step="0.001" />
+          <span class="value" id="minorInnerValue"></span>
         </label>
         <label>
           Major tick width (vs radius)
           <input id="majorWidthRelSlider" type="range" min="0" max="0.1" step="0.001" />
           <span class="value" id="majorWidthRelValue"></span>
+        </label>
+          Minor tick width (vs radius)
+          <input id="minorWidthRelSlider" type="range" min="0" max="0.1" step="0.001" />
+          <span class="value" id="minorWidthRelValue"></span>
         </label>
       </div>
     </details>
@@ -115,14 +113,14 @@
       <summary class="groupTitle">Hands & diamond (relative to clock radius)</summary>
       <div class="controls" id="handControls">
         <label>
-          Shaft width (vs radius)
-          <input id="shaftWidthRelSlider" type="range" min="0" max="0.08" step="0.001" />
-          <span class="value" id="shaftWidthRelValue"></span>
-        </label>
-        <label>
           Tip radius (0–1)
           <input id="tipRelSlider" type="range" min="0.7" max="1" step="0.001" />
           <span class="value" id="tipRelValue"></span>
+        </label>
+        <label>
+          Shaft width (vs radius)
+          <input id="shaftWidthRelSlider" type="range" min="0" max="0.08" step="0.001" />
+          <span class="value" id="shaftWidthRelValue"></span>
         </label>
         <label>
           Diamond base inset (vs radius)
@@ -160,6 +158,21 @@
           <input id="numberFontRelSlider" type="range" min="0.02" max="0.3" step="0.001" />
           <span class="value" id="numberFontRelValue"></span>
         </label>
+        <div style="margin-top:12px;font-size:13px;opacity:0.8;">Fine tune number positions</div>
+        <div id="numberOffsetSliders" style="display:flex;flex-direction:column;gap:8px;">
+          <label>5: X <input id="num5x" type="range" min="-0.2" max="0.2" step="0.001" value="0.034" /> <span class="value" id="num5xVal">0</span> Y <input id="num5y" type="range" min="-0.2" max="0.2" step="0.001" value="-0.007" /> <span class="value" id="num5yVal">0</span></label>
+          <label>10: X <input id="num10x" type="range" min="-0.2" max="0.2" step="0.001" value="0.004" /> <span class="value" id="num10xVal">0</span> Y <input id="num10y" type="range" min="-0.2" max="0.2" step="0.001" value="0.000" /> <span class="value" id="num10yVal">0</span></label>
+          <label>15: X <input id="num15x" type="range" min="-0.2" max="0.2" step="0.001" value="0.022" /> <span class="value" id="num15xVal">0</span> Y <input id="num15y" type="range" min="-0.2" max="0.2" step="0.001" value="0.010" /> <span class="value" id="num15yVal">0</span></label>
+          <label>20: X <input id="num20x" type="range" min="-0.2" max="0.2" step="0.001" value="0.004" /> <span class="value" id="num20xVal">0</span> Y <input id="num20y" type="range" min="-0.2" max="0.2" step="0.001" value="0.010" /> <span class="value" id="num20yVal">0</span></label>
+          <label>25: X <input id="num25x" type="range" min="-0.2" max="0.2" step="0.001" value="0.019" /> <span class="value" id="num25xVal">0</span> Y <input id="num25y" type="range" min="-0.2" max="0.2" step="0.001" value="0.016" /> <span class="value" id="num25yVal">0</span></label>
+          <label>30: X <input id="num30x" type="range" min="-0.2" max="0.2" step="0.001" value="0.001" /> <span class="value" id="num30xVal">0</span> Y <input id="num30y" type="range" min="-0.2" max="0.2" step="0.001" value="0.049" /> <span class="value" id="num30yVal">0</span></label>
+          <label>35: X <input id="num35x" type="range" min="-0.2" max="0.2" step="0.001" value="-0.007" /> <span class="value" id="num35xVal">0</span> Y <input id="num35y" type="range" min="-0.2" max="0.2" step="0.001" value="0.016" /> <span class="value" id="num35yVal">0</span></label>
+          <label>40: X <input id="num40x" type="range" min="-0.2" max="0.2" step="0.001" value="0.004" /> <span class="value" id="num40xVal">0</span> Y <input id="num40y" type="range" min="-0.2" max="0.2" step="0.001" value="0.007" /> <span class="value" id="num40yVal">0</span></label>
+          <label>45: X <input id="num45x" type="range" min="-0.2" max="0.2" step="0.001" value="-0.013" /> <span class="value" id="num45xVal">0</span> Y <input id="num45y" type="range" min="-0.2" max="0.2" step="0.001" value="0.013" /> <span class="value" id="num45yVal">0</span></label>
+          <label>50: X <input id="num50x" type="range" min="-0.2" max="0.2" step="0.001" value="0.004" /> <span class="value" id="num50xVal">0</span> Y <input id="num50y" type="range" min="-0.2" max="0.2" step="0.001" value="-0.001" /> <span class="value" id="num50yVal">0</span></label>
+          <label>55: X <input id="num55x" type="range" min="-0.2" max="0.2" step="0.001" value="0.007" /> <span class="value" id="num55xVal">0</span> Y <input id="num55y" type="range" min="-0.2" max="0.2" step="0.001" value="-0.007" /> <span class="value" id="num55yVal">0</span></label>
+          <label>60: X <input id="num60x" type="range" min="-0.2" max="0.2" step="0.001" value="0.000" /> <span class="value" id="num60xVal">0</span> Y <input id="num60y" type="range" min="-0.2" max="0.2" step="0.001" value="-0.034" /> <span class="value" id="num60yVal">0</span></label>
+        </div>
       </div>
     </details>
 
@@ -213,6 +226,43 @@
   </div>
 
 <script>
+// Number offset state: { [number]: {x, y} }
+const numberOffsets = {
+  5:  {x:0, y:0}, 10: {x:0, y:0}, 15: {x:0, y:0}, 20: {x:0, y:0},
+  25: {x:0, y:0}, 30: {x:0, y:0}, 35: {x:0, y:0}, 40: {x:0, y:0},
+  45: {x:0, y:0}, 50: {x:0, y:0}, 55: {x:0, y:0}, 60: {x:0, y:0}
+};
+
+// Wire up slider event handlers for each number
+for (const n of [5,10,15,20,25,30,35,40,45,50,55,60]) {
+  const xSlider = document.getElementById(`num${n}x`);
+  const ySlider = document.getElementById(`num${n}y`);
+  const xVal = document.getElementById(`num${n}xVal`);
+  const yVal = document.getElementById(`num${n}yVal`);
+  xSlider.addEventListener('input', () => {
+    numberOffsets[n].x = parseFloat(xSlider.value);
+    xVal.textContent = xSlider.value;
+  });
+  ySlider.addEventListener('input', () => {
+    numberOffsets[n].y = parseFloat(ySlider.value);
+    yVal.textContent = ySlider.value;
+  });
+}
+// Initialize offsets from slider default values (so HTML value attributes are respected)
+for (const n of [5,10,15,20,25,30,35,40,45,50,55,60]) {
+  const xSlider = document.getElementById(`num${n}x`);
+  const ySlider = document.getElementById(`num${n}y`);
+  const xVal = document.getElementById(`num${n}xVal`);
+  const yVal = document.getElementById(`num${n}yVal`);
+  if (xSlider && ySlider && xVal && yVal) {
+    const xv = parseFloat(xSlider.value);
+    const yv = parseFloat(ySlider.value);
+    numberOffsets[n].x = Number.isFinite(xv) ? xv : 0;
+    numberOffsets[n].y = Number.isFinite(yv) ? yv : 0;
+    xVal.textContent = xSlider.value;
+    yVal.textContent = ySlider.value;
+  }
+}
 const canvas = document.getElementById('clock');
 const ctx = canvas.getContext('2d');
 const leftPanel = document.getElementById('leftPanel');
@@ -419,10 +469,15 @@ function drawFace(size, r) {
 
   for (let s = 0; s < 60; s += 5) {
     const angle = (Math.PI * 2) * (s / 60) - Math.PI / 2;
-    const x = Math.cos(angle) * numberRadius;
-    const y = Math.sin(angle) * numberRadius;
-
+    let x = Math.cos(angle) * numberRadius;
+    let y = Math.sin(angle) * numberRadius;
     const label = (s === 0) ? '60' : String(s);
+    // Apply offset if present
+    const offset = numberOffsets[s === 0 ? 60 : s];
+    if (offset) {
+      x += offset.x * r;
+      y += offset.y * r;
+    }
     ctx.fillText(label, x, y);
   }
 }
