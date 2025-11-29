@@ -176,6 +176,45 @@
       </div>
     </details>
 
+    <details>
+      <summary class="groupTitle">Minute hand</summary>
+      <div class="controls" id="minuteControls">
+        <label style="flex-direction:row;align-items:center;gap:8px;">
+          <input id="showMinuteCheckbox" type="checkbox" checked /> Enable minute hand
+        </label>
+        <label>
+          Shaft width (vs radius)
+          <input id="minuteShaftWidthRelSlider" type="range" min="0" max="0.08" step="0.001" />
+          <span class="value" id="minuteShaftWidthRelValue"></span>
+        </label>
+        <label>
+          Tip radius (0–1)
+          <input id="minuteTipRelSlider" type="range" min="0.7" max="1" step="0.001" />
+          <span class="value" id="minuteTipRelValue"></span>
+        </label>
+        <label>
+          Diamond base inset (vs radius)
+          <input id="minuteDiamondBaseInsetRelSlider" type="range" min="0" max="0.4" step="0.001" />
+          <span class="value" id="minuteDiamondBaseInsetRelValue"></span>
+        </label>
+        <label>
+          Diamond back (vs radius)
+          <input id="minuteDiamondBackRelSlider" type="range" min="0" max="0.2" step="0.005" />
+          <span class="value" id="minuteDiamondBackRelValue"></span>
+        </label>
+        <label>
+          Diamond width (vs radius)
+          <input id="minuteDiamondWidthRelSlider" type="range" min="0" max="0.2" step="0.001" />
+          <span class="value" id="minuteDiamondWidthRelValue"></span>
+        </label>
+        <label>
+          Hand color
+          <input id="minuteColorInput" type="color" value="#888888" />
+          <span class="value" id="minuteColorValue"></span>
+        </label>
+      </div>
+    </details>
+
   <details>
       <summary class="groupTitle">Reference image</summary>
       <div class="controls" id="bgControls">
@@ -307,11 +346,19 @@ const DEFAULT_tipRel              = 0.986;
 const DEFAULT_diamondBaseInsetRel = 0.247;
 const DEFAULT_diamondBackRel      = 0.025;
 const DEFAULT_diamondWidthRel     = 0.098;
+// Distinct defaults for the minute hand to make it visually different
+const DEFAULT_minuteShaftWidthRel  = 0.015;   // slightly thinner than the main shaft (default 0.04)
+const DEFAULT_minuteTipRel         = 1.000;  // reach a bit closer to the tick marks
+const DEFAULT_minuteDiamondBaseInsetRel = 0.058; // move diamond centre slightly outwards
+const DEFAULT_minuteDiamondBackRel = 0.135;  // smaller inner inset
+const DEFAULT_minuteDiamondWidthRel = 0.112;  // narrower diamond head
+const DEFAULT_minuteColor          = '#444444'; // lighter grey for contrast
+const DEFAULT_showMinute           = true;  // remain enabled by default
 const DEFAULT_bgScaleRel          = 1.073;
 const DEFAULT_logoSizeRel         = 0.120;
 const DEFAULT_showLogo            = false;
 const DEFAULT_runClock            = true;
-const DEFAULT_manualAngle         = 0.25;
+const DEFAULT_manualAngle         = 0.00;
 const DEFAULT_showBg              = false;
 
 // Live values (start at defaults)
@@ -335,6 +382,13 @@ let showLogo            = DEFAULT_showLogo;
 let runClock            = DEFAULT_runClock;
 let manualAngle         = DEFAULT_manualAngle;
 let showBg              = DEFAULT_showBg;
+let minuteShaftWidthRel = DEFAULT_minuteShaftWidthRel;
+let minuteTipRel        = DEFAULT_minuteTipRel;
+let minuteDiamondBaseInsetRel = DEFAULT_minuteDiamondBaseInsetRel;
+let minuteDiamondBackRel = DEFAULT_minuteDiamondBackRel;
+let minuteDiamondWidthRel = DEFAULT_minuteDiamondWidthRel;
+let minuteColor         = DEFAULT_minuteColor;
+let showMinute          = DEFAULT_showMinute;
 
 // Apply URL overrides (if provided)
 outerRel            = paramFloat('outerRel', outerRel);
@@ -357,6 +411,13 @@ showLogo            = paramBool('showLogo', showLogo);
 runClock            = paramBool('runClock', runClock);
 manualAngle         = paramFloat('manualAngle', manualAngle);
 showBg              = paramBool('showBg', showBg);
+minuteShaftWidthRel = paramFloat('minuteShaftWidthRel', minuteShaftWidthRel);
+minuteTipRel        = paramFloat('minuteTipRel', minuteTipRel);
+minuteDiamondBaseInsetRel = paramFloat('minuteDiamondBaseInsetRel', minuteDiamondBaseInsetRel);
+minuteDiamondBackRel = paramFloat('minuteDiamondBackRel', minuteDiamondBackRel);
+minuteDiamondWidthRel = paramFloat('minuteDiamondWidthRel', minuteDiamondWidthRel);
+minuteColor         = params.get('minuteColor') || minuteColor;
+showMinute          = paramBool('showMinute', showMinute);
 
 // Reference background image for local use (ignored if not found)
 const bgImage = new Image();
@@ -546,12 +607,12 @@ function drawMinuteHand(angle, color, r) {
   const px = Math.cos(angle + Math.PI / 2);
   const py = Math.sin(angle + Math.PI / 2);
 
-  // Slightly shorter/thinner than the main hands
-  const tipRadius = clockRadius * (tipRel * 0.98);
-  const diamondMidRadius  = tipRadius - clockRadius * diamondBaseInsetRel;
-  const diamondBackRadius = diamondMidRadius - clockRadius * diamondBackRel;
-  const shaftWidth        = clockRadius * shaftWidthRel * 0.7;
-  const diamondWidth      = clockRadius * diamondWidthRel * 0.7;
+  // Use minute-specific parameters (no extra shrink factors) so same settings -> same absolute size
+  const tipRadius = clockRadius * minuteTipRel;
+  const diamondMidRadius  = tipRadius - clockRadius * minuteDiamondBaseInsetRel;
+  const diamondBackRadius = diamondMidRadius - clockRadius * minuteDiamondBackRel;
+  const shaftWidth        = clockRadius * minuteShaftWidthRel;
+  const diamondWidth      = clockRadius * minuteDiamondWidthRel;
 
   // Shaft
   const shaftEndX = nx * diamondMidRadius;
@@ -634,7 +695,9 @@ function frame() {
   } else {
     minuteAngle = (Math.PI * 2) * manualAngle - Math.PI / 2;
   }
-  drawMinuteHand(minuteAngle, '#444', r);
+  if (showMinute) {
+    drawMinuteHand(minuteAngle, minuteColor, r);
+  }
 
   drawDiamondHand(baseAngle,                   'blue',  r);    // up
   drawDiamondHand(baseAngle + Math.PI / 2,     'yellow',r);    // right
@@ -681,6 +744,19 @@ const numberRadiusRelSlider   = document.getElementById('numberRadiusRelSlider')
 const numberRadiusRelValue    = document.getElementById('numberRadiusRelValue');
 const numberFontRelSlider     = document.getElementById('numberFontRelSlider');
 const numberFontRelValue      = document.getElementById('numberFontRelValue');
+const minuteShaftWidthRelSlider = document.getElementById('minuteShaftWidthRelSlider');
+const minuteShaftWidthRelValue  = document.getElementById('minuteShaftWidthRelValue');
+const minuteTipRelSlider       = document.getElementById('minuteTipRelSlider');
+const minuteTipRelValue        = document.getElementById('minuteTipRelValue');
+const minuteDiamondBaseInsetRelSlider = document.getElementById('minuteDiamondBaseInsetRelSlider');
+const minuteDiamondBaseInsetRelValue  = document.getElementById('minuteDiamondBaseInsetRelValue');
+const minuteDiamondBackRelSlider = document.getElementById('minuteDiamondBackRelSlider');
+const minuteDiamondBackRelValue  = document.getElementById('minuteDiamondBackRelValue');
+const minuteDiamondWidthRelSlider = document.getElementById('minuteDiamondWidthRelSlider');
+const minuteDiamondWidthRelValue  = document.getElementById('minuteDiamondWidthRelValue');
+const minuteColorInput         = document.getElementById('minuteColorInput');
+const minuteColorValue         = document.getElementById('minuteColorValue');
+const showMinuteCheckbox       = document.getElementById('showMinuteCheckbox');
 
 const bgScaleRelSlider        = document.getElementById('bgScaleRelSlider');
 const bgScaleRelValue         = document.getElementById('bgScaleRelValue');
@@ -740,6 +816,21 @@ function syncControls() {
 
   bgScaleRelSlider.value        = bgScaleRel;
   bgScaleRelValue.textContent   = bgScaleRel.toFixed(3);
+
+  // Minute hand controls
+  showMinuteCheckbox.checked    = showMinute;
+  minuteShaftWidthRelSlider.value = minuteShaftWidthRel;
+  minuteShaftWidthRelValue.textContent = minuteShaftWidthRel.toFixed(3);
+  minuteTipRelSlider.value      = minuteTipRel;
+  minuteTipRelValue.textContent = minuteTipRel.toFixed(3);
+  minuteDiamondBaseInsetRelSlider.value = minuteDiamondBaseInsetRel;
+  minuteDiamondBaseInsetRelValue.textContent = minuteDiamondBaseInsetRel.toFixed(3);
+  minuteDiamondBackRelSlider.value = minuteDiamondBackRel;
+  minuteDiamondBackRelValue.textContent = minuteDiamondBackRel.toFixed(3);
+  minuteDiamondWidthRelSlider.value = minuteDiamondWidthRel;
+  minuteDiamondWidthRelValue.textContent = minuteDiamondWidthRel.toFixed(3);
+  minuteColorInput.value        = minuteColor;
+  minuteColorValue.textContent  = minuteColor;
 
   runClockCheckbox.checked      = runClock;
   showLogoCheckbox.checked      = showLogo;
@@ -816,6 +907,40 @@ numberRadiusRelSlider.addEventListener('input', () => {
   numberRadiusRelValue.textContent = numberRadiusRel.toFixed(3);
 });
 
+minuteShaftWidthRelSlider.addEventListener('input', () => {
+  minuteShaftWidthRel = parseFloat(minuteShaftWidthRelSlider.value);
+  minuteShaftWidthRelValue.textContent = minuteShaftWidthRel.toFixed(3);
+});
+
+minuteTipRelSlider.addEventListener('input', () => {
+  minuteTipRel = parseFloat(minuteTipRelSlider.value);
+  minuteTipRelValue.textContent = minuteTipRel.toFixed(3);
+});
+
+minuteDiamondBaseInsetRelSlider.addEventListener('input', () => {
+  minuteDiamondBaseInsetRel = parseFloat(minuteDiamondBaseInsetRelSlider.value);
+  minuteDiamondBaseInsetRelValue.textContent = minuteDiamondBaseInsetRel.toFixed(3);
+});
+
+minuteDiamondBackRelSlider.addEventListener('input', () => {
+  minuteDiamondBackRel = parseFloat(minuteDiamondBackRelSlider.value);
+  minuteDiamondBackRelValue.textContent = minuteDiamondBackRel.toFixed(3);
+});
+
+minuteDiamondWidthRelSlider.addEventListener('input', () => {
+  minuteDiamondWidthRel = parseFloat(minuteDiamondWidthRelSlider.value);
+  minuteDiamondWidthRelValue.textContent = minuteDiamondWidthRel.toFixed(3);
+});
+
+minuteColorInput.addEventListener('input', () => {
+  minuteColor = minuteColorInput.value;
+  minuteColorValue.textContent = minuteColor;
+});
+
+showMinuteCheckbox.addEventListener('change', () => {
+  showMinute = showMinuteCheckbox.checked;
+});
+
 numberFontRelSlider.addEventListener('input', () => {
   numberFontRel = parseFloat(numberFontRelSlider.value);
   numberFontRelValue.textContent = numberFontRel.toFixed(3);
@@ -887,9 +1012,18 @@ function buildConfigUrl() {
   addFloat('logoSizeRel',         logoSizeRel,         DEFAULT_logoSizeRel);
   addFloat('manualAngle',         manualAngle,         DEFAULT_manualAngle, 4);
 
+  // Minute hand settings
+  addFloat('minuteShaftWidthRel', minuteShaftWidthRel, DEFAULT_minuteShaftWidthRel);
+  addFloat('minuteTipRel',        minuteTipRel,        DEFAULT_minuteTipRel);
+  addFloat('minuteDiamondBaseInsetRel', minuteDiamondBaseInsetRel, DEFAULT_minuteDiamondBaseInsetRel);
+  addFloat('minuteDiamondBackRel', minuteDiamondBackRel, DEFAULT_minuteDiamondBackRel);
+  addFloat('minuteDiamondWidthRel', minuteDiamondWidthRel, DEFAULT_minuteDiamondWidthRel);
+  if (minuteColor !== DEFAULT_minuteColor) qs.set('minuteColor', minuteColor);
+
   addBool('showLogo', showLogo, DEFAULT_showLogo);
   addBool('runClock', runClock, DEFAULT_runClock);
   addBool('showBg', showBg, DEFAULT_showBg);
+  addBool('showMinute', showMinute, DEFAULT_showMinute);
 
   const query = qs.toString();
   return query ? `${base}?${query}` : base;
