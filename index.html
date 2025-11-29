@@ -544,7 +544,8 @@ function drawCenterElement(r, baseAngle) {
 
   if (showLogo && centerLogoReady && !centerLogoError) {
     ctx.save();
-    ctx.rotate(baseAngle);
+    // Rotate the logo so it is right-side-up when the blue hand (baseAngle) is at the top.
+    ctx.rotate(baseAngle + Math.PI / 2);
     const size = logoRadius * 2;
     ctx.drawImage(centerLogoImage, -logoRadius, -logoRadius, size, size);
     ctx.restore();
