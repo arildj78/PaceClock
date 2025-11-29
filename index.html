@@ -5,6 +5,13 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Analog pacing‑klokke</title>
   <style>
+    @font-face {
+      font-family: 'BFont';
+      src: url('./font/bfont.woff2') format('woff2');
+      font-weight: normal;
+      font-style: normal;
+      font-display: swap;
+    }
     body {
       margin:0;
       background:black;
@@ -13,7 +20,7 @@
       align-items:stretch;
       height:100vh;
       color:white;
-      font-family:Arial, sans-serif;
+      font-family: 'BFont', Arial, sans-serif;
       gap:24px;
     }
     #leftPanel {
@@ -398,7 +405,7 @@ function drawFace(size, r) {
   const numberRadius = clockRadius * numberRadiusRel;
 
   ctx.fillStyle = 'white';
-  ctx.font = `${Math.round(clockRadius * numberFontRel)}px Arial`;
+  ctx.font = `${Math.round(clockRadius * numberFontRel)}px 'BFont', Arial, sans-serif`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
 
