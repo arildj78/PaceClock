@@ -31,6 +31,8 @@
       box-sizing:border-box;
       width:260px;
       max-width:40vw;
+      max-height:100vh;
+      overflow-y:auto;
     }
     #rightPanel {
       flex:1;
@@ -73,8 +75,8 @@
 </head>
 <body>
   <div id="leftPanel">
-    <div>
-      <div class="groupTitle">Clock geometry (relative 0–1)</div>
+  <details>
+      <summary class="groupTitle">Clock geometry (relative 0–1)</summary>
       <div class="controls" id="clockControls">
         <label>
           Outer size (vs screen height)
@@ -107,10 +109,10 @@
           <span class="value" id="majorWidthRelValue"></span>
         </label>
       </div>
-    </div>
+    </details>
 
-    <div>
-      <div class="groupTitle">Hands & diamond (relative to clock radius)</div>
+  <details>
+      <summary class="groupTitle">Hands & diamond (relative to clock radius)</summary>
       <div class="controls" id="handControls">
         <label>
           Shaft width (vs radius)
@@ -143,10 +145,10 @@
           <span class="value" id="centerCircleRelValue"></span>
         </label>
       </div>
-    </div>
+    </details>
 
-    <div>
-      <div class="groupTitle">Numbers (relative)</div>
+  <details>
+      <summary class="groupTitle">Numbers (relative)</summary>
       <div class="controls" id="numberControls">
         <label>
           Number radius (0–1)
@@ -159,10 +161,10 @@
           <span class="value" id="numberFontRelValue"></span>
         </label>
       </div>
-    </div>
+    </details>
 
-    <div>
-      <div class="groupTitle">Reference image</div>
+  <details>
+      <summary class="groupTitle">Reference image</summary>
       <div class="controls" id="bgControls">
         <label style="flex-direction:row;align-items:center;gap:8px;">
           <input id="showBgCheckbox" type="checkbox" /> Show reference image
@@ -173,10 +175,10 @@
           <span class="value" id="bgScaleRelValue"></span>
         </label>
       </div>
-    </div>
+    </details>
 
-    <div>
-      <div class="groupTitle">Animation control</div>
+  <details>
+      <summary class="groupTitle">Animation control</summary>
       <div class="controls" id="animControls">
         <label style="flex-direction:row;align-items:center;gap:8px;">
           <input id="runClockCheckbox" type="checkbox" checked /> Run clock
@@ -195,15 +197,15 @@
           <span class="value" id="logoSizeRelValue"></span>
         </label>
       </div>
-    </div>
+    </details>
 
-    <div>
-      <div class="groupTitle">Share / link</div>
+  <details>
+      <summary class="groupTitle">Share / link</summary>
       <div class="controls">
         <button id="copyUrlButton" type="button">Copy URL for this setup</button>
         <span class="value" id="copyUrlStatus"></span>
       </div>
-    </div>
+    </details>
   </div>
 
   <div id="rightPanel">
