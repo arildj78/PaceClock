@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="preload" href="./font/bfont.woff2" as="font" type="font/woff2" crossorigin />
   <title>Analog pacing‑klokke</title>
   <style>
     @font-face {
@@ -10,7 +11,7 @@
       src: url('./font/bfont.woff2') format('woff2');
       font-weight: normal;
       font-style: normal;
-      font-display: swap;
+      font-display: block;
     }
     body {
       margin:0;
@@ -434,6 +435,27 @@ centerLogoImage.onerror = () => { centerLogoError = true; };
 
 bgImage.onload = () => { bgReady = true; };
 
+// Ensure custom font loads before rendering canvas text (numbers)
+// In production mode, the font may not load via document.fonts.ready if left panel is hidden
+let fontReady = false;
+if (document.fonts && document.fonts.ready) {
+  // Create a dummy element with the custom font to force the browser to load it
+  const dummyEl = document.createElement('span');
+  dummyEl.style.fontFamily = "'BFont', Arial, sans-serif";
+  dummyEl.style.position = 'absolute';
+  dummyEl.style.visibility = 'hidden';
+  dummyEl.textContent = '60';
+  document.body.appendChild(dummyEl);
+  
+  document.fonts.ready.then(() => {
+    fontReady = true;
+    document.body.removeChild(dummyEl);
+  });
+} else {
+  // Fallback: assume font is ready after a delay
+  setTimeout(() => { fontReady = true; }, 1000);
+}
+
 function resizeCanvas() {
   const vh = window.innerHeight || 800;
   const clockDiameter = vh * outerRel;
@@ -521,6 +543,9 @@ function drawFace(size, r) {
   }
 
   // Numbers: 5, 10, ... 55, and 60 at the top
+  // Skip rendering numbers until custom font is loaded to avoid flicker
+  if (!fontReady) return;
+
   const numberRadius = clockRadius * numberRadiusRel;
 
   ctx.fillStyle = 'white';
