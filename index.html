@@ -536,6 +536,59 @@ function drawDiamondHand(angle, color, r) {
   ctx.fill();
 }
 
+// A slightly slimmer version of the diamond hand for the minute indicator.
+function drawMinuteHand(angle, color, r) {
+  const clockRadius = r;
+
+  // Unit vectors along and perpendicular to the hand
+  const nx = Math.cos(angle);
+  const ny = Math.sin(angle);
+  const px = Math.cos(angle + Math.PI / 2);
+  const py = Math.sin(angle + Math.PI / 2);
+
+  // Slightly shorter/thinner than the main hands
+  const tipRadius = clockRadius * (tipRel * 0.98);
+  const diamondMidRadius  = tipRadius - clockRadius * diamondBaseInsetRel;
+  const diamondBackRadius = diamondMidRadius - clockRadius * diamondBackRel;
+  const shaftWidth        = clockRadius * shaftWidthRel * 0.7;
+  const diamondWidth      = clockRadius * diamondWidthRel * 0.7;
+
+  // Shaft
+  const shaftEndX = nx * diamondMidRadius;
+  const shaftEndY = ny * diamondMidRadius;
+
+  ctx.strokeStyle = color;
+  ctx.lineWidth = shaftWidth;
+  ctx.lineCap = 'butt';
+
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.lineTo(shaftEndX, shaftEndY);
+  ctx.stroke();
+
+  // Diamond head
+  const frontX = nx * tipRadius;
+  const frontY = ny * tipRadius;
+  const backX  = nx * diamondBackRadius;
+  const backY  = ny * diamondBackRadius;
+  const midX   = nx * diamondMidRadius;
+  const midY   = ny * diamondMidRadius;
+  const halfW  = diamondWidth / 2;
+  const leftX  = midX + px * halfW;
+  const leftY  = midY + py * halfW;
+  const rightX = midX - px * halfW;
+  const rightY = midY - py * halfW;
+
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(frontX, frontY);
+  ctx.lineTo(leftX, leftY);
+  ctx.lineTo(backX, backY);
+  ctx.lineTo(rightX, rightY);
+  ctx.closePath();
+  ctx.fill();
+}
+
 // Draw either the rotating logo (if available) or the static center circle
 function drawCenterElement(r, baseAngle) {
   const clockRadius = r;
@@ -572,6 +625,16 @@ function frame() {
   } else {
     baseAngle = (Math.PI * 2) * manualAngle - Math.PI / 2;
   }
+  // Minute hand (draw underneath the colored hands)
+  let minuteAngle;
+  if (runClock) {
+    const tmin = new Date();
+    const mins = tmin.getMinutes() + tmin.getSeconds() / 60 + tmin.getMilliseconds() / 60000;
+    minuteAngle = (Math.PI * 2) * (mins / 60) - Math.PI / 2;
+  } else {
+    minuteAngle = (Math.PI * 2) * manualAngle - Math.PI / 2;
+  }
+  drawMinuteHand(minuteAngle, '#444', r);
 
   drawDiamondHand(baseAngle,                   'blue',  r);    // up
   drawDiamondHand(baseAngle + Math.PI / 2,     'yellow',r);    // right
