@@ -164,6 +164,9 @@
     <div>
       <div class="groupTitle">Reference image</div>
       <div class="controls" id="bgControls">
+        <label style="flex-direction:row;align-items:center;gap:8px;">
+          <input id="showBgCheckbox" type="checkbox" /> Show reference image
+        </label>
         <label>
           Background scale
           <input id="bgScaleRelSlider" type="range" min="0.9" max="1.1" step="0.001" />
@@ -257,6 +260,7 @@ const DEFAULT_logoSizeRel         = 0.038;
 const DEFAULT_showLogo            = true;
 const DEFAULT_runClock            = true;
 const DEFAULT_manualAngle         = 0.25;
+const DEFAULT_showBg              = false;
 
 // Live values (start at defaults)
 let outerRel            = DEFAULT_outerRel;
@@ -278,6 +282,7 @@ let logoSizeRel         = DEFAULT_logoSizeRel;
 let showLogo            = DEFAULT_showLogo;
 let runClock            = DEFAULT_runClock;
 let manualAngle         = DEFAULT_manualAngle;
+let showBg              = DEFAULT_showBg;
 
 // Apply URL overrides (if provided)
 outerRel            = paramFloat('outerRel', outerRel);
@@ -299,6 +304,7 @@ logoSizeRel         = paramFloat('logoSizeRel', logoSizeRel);
 showLogo            = paramBool('showLogo', showLogo);
 runClock            = paramBool('runClock', runClock);
 manualAngle         = paramFloat('manualAngle', manualAngle);
+showBg              = paramBool('showBg', showBg);
 
 // Reference background image for local use (ignored if not found)
 const bgImage = new Image();
@@ -331,7 +337,7 @@ function resizeCanvas() {
 }
 
 function drawBackground(size, r) {
-  if (!bgReady) return;
+  if (!bgReady || !showBg) return;
 
   const iw = bgImage.width;
   const ih = bgImage.height;
@@ -361,7 +367,7 @@ function drawBackground(size, r) {
   dy = (ch - dh) / 2;
 
   ctx.save();
-  ctx.globalAlpha = 0.0; // set >0 locally if you want the overlay
+  ctx.globalAlpha = 0.5// set >0 locally if you want the overlay
   ctx.drawImage(bgImage, -r + dx, -r + dy, dw, dh);
   ctx.restore();
 }
@@ -564,6 +570,7 @@ const manualAngleValue        = document.getElementById('manualAngleValue');
 const showLogoCheckbox        = document.getElementById('showLogoCheckbox');
 const logoSizeRelSlider       = document.getElementById('logoSizeRelSlider');
 const logoSizeRelValue        = document.getElementById('logoSizeRelValue');
+const showBgCheckbox          = document.getElementById('showBgCheckbox');
 const copyUrlButton           = document.getElementById('copyUrlButton');
 const copyUrlStatus           = document.getElementById('copyUrlStatus');
 
@@ -620,6 +627,7 @@ function syncControls() {
   manualAngleSlider.value       = manualAngle;
   manualAngleSlider.disabled    = runClock;
   manualAngleValue.textContent  = manualAngle.toFixed(3);
+  showBgCheckbox.checked        = showBg;
 }
 
 outerRelSlider.addEventListener('input', () => {
@@ -716,6 +724,10 @@ manualAngleSlider.addEventListener('input', () => {
   manualAngleValue.textContent = manualAngle.toFixed(3);
 });
 
+showBgCheckbox.addEventListener('change', () => {
+  showBg = showBgCheckbox.checked;
+});
+
 function buildConfigUrl() {
   const base = window.location.origin + window.location.pathname;
   const qs = new URLSearchParams();
@@ -756,6 +768,7 @@ function buildConfigUrl() {
 
   addBool('showLogo', showLogo, DEFAULT_showLogo);
   addBool('runClock', runClock, DEFAULT_runClock);
+  addBool('showBg', showBg, DEFAULT_showBg);
 
   const query = qs.toString();
   return query ? `${base}?${query}` : base;
