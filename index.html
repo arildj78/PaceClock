@@ -68,6 +68,13 @@
     .controls input[type="range"] {
       width:100%;
     }
+    .controls select {
+      width:100%;
+      padding:4px;
+      background:black;
+      color:white;
+      border:1px solid #666;
+    }
     .controls span.value {
       font-size:11px;
       opacity:0.8;
@@ -174,6 +181,59 @@
           <label>55: X <input id="num55x" type="range" min="-0.2" max="0.2" step="0.001" value="0.007" /> <span class="value" id="num55xVal">0</span> Y <input id="num55y" type="range" min="-0.2" max="0.2" step="0.001" value="-0.007" /> <span class="value" id="num55yVal">0</span></label>
           <label>60: X <input id="num60x" type="range" min="-0.2" max="0.2" step="0.001" value="0.000" /> <span class="value" id="num60xVal">0</span> Y <input id="num60y" type="range" min="-0.2" max="0.2" step="0.001" value="-0.034" /> <span class="value" id="num60yVal">0</span></label>
         </div>
+      </div>
+    </details>
+
+    <details>
+      <summary class="groupTitle">Digital display</summary>
+      <div class="controls" id="vfdControls">
+        <label style="flex-direction:row;align-items:center;gap:8px;">
+          <input id="showVFDCheckbox" type="checkbox" checked /> Show digital display
+        </label>
+        <label>
+          Color
+          <input id="vfdColorInput" type="color" value="#00b7ff" />
+          <span class="value" id="vfdColorVal"></span>
+        </label>
+        <label>
+          Test pattern
+          <select id="vfdTestModeSelect">
+            <option value="normal">Normal (HH:MM)</option>
+            <option value="all">All dots on</option>
+            <option value="88">88:88</option>
+          </select>
+          <span class="value" id="vfdTestModeVal"></span>
+        </label>
+        <label>
+          Scale (relative)
+          <input id="vfdSizeRelSlider" type="range" min="0.2" max="1.2" step="0.001" />
+          <span class="value" id="vfdSizeRelVal"></span>
+        </label>
+        <label>
+          Vertical offset (rel radius)
+          <input id="vfdYOffsetSlider" type="range" min="-0.5" max="0.5" step="0.01" />
+          <span class="value" id="vfdYOffsetVal"></span>
+        </label>
+        <label>
+          Colon padding (dots)
+          <input id="vfdColonPaddingSlider" type="range" min="0" max="3" step="0.1" />
+          <span class="value" id="vfdColonPaddingVal"></span>
+        </label>
+        <label>
+          Digit spacing (extra)
+          <input id="vfdDigitGapRelSlider" type="range" min="-0.5" max="2" step="0.01" />
+          <span class="value" id="vfdDigitGapRelVal"></span>
+        </label>
+        <label>
+          Corner radius (rel)
+          <input id="vfdCornerRelSlider" type="range" min="0" max="1" step="0.05" />
+          <span class="value" id="vfdCornerRelVal"></span>
+        </label>
+        <label>
+          Glow intensity
+          <input id="vfdGlowRelSlider" type="range" min="0" max="8" step="0.1" />
+          <span class="value" id="vfdGlowRelVal"></span>
+        </label>
       </div>
     </details>
 
@@ -362,6 +422,16 @@ const DEFAULT_runClock            = true;
 const DEFAULT_manualAngle         = 0.00;
 const DEFAULT_showBg              = false;
 
+// Digital VFD defaults
+const DEFAULT_vfdEnabled         = true;
+const DEFAULT_vfdColor           = '#00b7ff';
+const DEFAULT_vfdScaleRel        = 0.346;   // 50% of base dot size
+const DEFAULT_vfdYOffsetRel      = 0.300;  // vertical placement multiplier used earlier
+const DEFAULT_vfdColonPadding    = 0.400;   // in dot spacings
+const DEFAULT_vfdCornerRel       = 0.25;  // corner radius relative to dotRadius
+const DEFAULT_vfdGlowRel         = 0.000;   // shadow blur multiplier
+const DEFAULT_vfdDigitGapRel     = 0.380;   // extra digit spacing multiplier (adds to base gap factor)
+
 // Live values (start at defaults)
 let outerRel            = DEFAULT_outerRel;
 let minorInnerRel       = DEFAULT_minorInnerRel;
@@ -390,6 +460,16 @@ let minuteDiamondBackRel = DEFAULT_minuteDiamondBackRel;
 let minuteDiamondWidthRel = DEFAULT_minuteDiamondWidthRel;
 let minuteColor         = DEFAULT_minuteColor;
 let showMinute          = DEFAULT_showMinute;
+// VFD live values
+let vfdEnabled          = DEFAULT_vfdEnabled;
+let vfdColor            = DEFAULT_vfdColor;
+let vfdScaleRel         = DEFAULT_vfdScaleRel;
+let vfdYOffsetRel       = DEFAULT_vfdYOffsetRel;
+let vfdColonPadding     = DEFAULT_vfdColonPadding;
+let vfdCornerRel        = DEFAULT_vfdCornerRel;
+let vfdGlowRel          = DEFAULT_vfdGlowRel;
+let vfdDigitGapRel      = DEFAULT_vfdDigitGapRel;
+let vfdTestMode         = 'normal'; // 'normal' | 'all' | '88'
 
 // Apply URL overrides (if provided)
 outerRel            = paramFloat('outerRel', outerRel);
@@ -419,6 +499,16 @@ minuteDiamondBackRel = paramFloat('minuteDiamondBackRel', minuteDiamondBackRel);
 minuteDiamondWidthRel = paramFloat('minuteDiamondWidthRel', minuteDiamondWidthRel);
 minuteColor         = params.get('minuteColor') || minuteColor;
 showMinute          = paramBool('showMinute', showMinute);
+// VFD params
+vfdEnabled      = paramBool('vfdEnabled', vfdEnabled);
+vfdColor        = params.get('vfdColor') || vfdColor;
+vfdScaleRel     = paramFloat('vfdScaleRel', vfdScaleRel);
+vfdYOffsetRel   = paramFloat('vfdYOffsetRel', vfdYOffsetRel);
+vfdColonPadding = paramFloat('vfdColonPadding', vfdColonPadding);
+vfdCornerRel    = paramFloat('vfdCornerRel', vfdCornerRel);
+vfdGlowRel      = paramFloat('vfdGlowRel', vfdGlowRel);
+vfdTestMode     = params.get('vfdTestMode') || vfdTestMode;
+vfdDigitGapRel  = paramFloat('vfdDigitGapRel', vfdDigitGapRel);
 
 // Reference background image for local use (ignored if not found)
 const bgImage = new Image();
@@ -456,6 +546,18 @@ if (document.fonts && document.fonts.ready) {
   setTimeout(() => { fontReady = true; }, 1000);
 }
 
+// VFD caching: only redraw when time or settings change
+let lastVFDHourMinute = '';
+let lastVFDSettings = '';
+// Offscreen canvas used to cache the rendered VFD image so we can blit it cheaply each frame
+let vfdCanvas = null;
+let vfdCtx = null;
+let vfdCanvasSize = 0;
+
+function getVFDSettingsHash() {
+  return `${vfdEnabled}|${vfdColor}|${vfdScaleRel}|${vfdYOffsetRel}|${vfdColonPadding}|${vfdCornerRel}|${vfdGlowRel}|${vfdDigitGapRel}|${vfdTestMode}`;
+}
+
 function resizeCanvas() {
   const vh = window.innerHeight || 800;
   const clockDiameter = vh * outerRel;
@@ -468,6 +570,21 @@ function resizeCanvas() {
   ctx.setTransform(1,0,0,1,0,0);
   ctx.translate(r, r);
 
+  // Keep our offscreen VFD canvas in sync with the main canvas size
+  if (!vfdCanvas || vfdCanvasSize !== size) {
+    vfdCanvas = document.createElement('canvas');
+    vfdCanvas.width = size;
+    vfdCanvas.height = size;
+    vfdCanvasSize = size;
+    vfdCtx = vfdCanvas.getContext('2d');
+    // Match transforms: origin at center so drawVFDDisplay can draw with same coordinates
+    vfdCtx.setTransform(1,0,0,1,0,0);
+    vfdCtx.translate(r, r);
+    // Force VFD to re-render after a resize
+    lastVFDHourMinute = '';
+    lastVFDSettings = '';
+  }
+
   return { size, r };
 }
 
@@ -477,6 +594,7 @@ function drawBackground(size, r) {
   const iw = bgImage.width;
   const ih = bgImage.height;
   const cw = size;
+  
   const ch = size;
 
   const imgAspect = iw / ih;
@@ -505,6 +623,183 @@ function drawBackground(size, r) {
   ctx.globalAlpha = 0.5// set >0 locally if you want the overlay
   ctx.drawImage(bgImage, -r + dx, -r + dy, dw, dh);
   ctx.restore();
+}
+
+// Draw a VFD-style dot-matrix digital clock on the lower half of the face.
+// This is a preview: it renders HH:MM (24-hour) using a 5x7 dot font and a soft neon glow.
+function drawVFDDisplay(size, r, targetCtx) {
+  if (!vfdEnabled) return;
+  const localCtx = targetCtx || ctx;
+  
+  // Determine display text based on test mode
+  let text;
+  let testAll = false;
+  if (vfdTestMode === '88') {
+    text = '88:88';
+  } else if (vfdTestMode === 'all') {
+    text = '88:88';
+    testAll = true;
+  } else {
+    const now = new Date();
+    const hh = String(now.getHours()).padStart(2, '0');
+    const mm = String(now.getMinutes()).padStart(2, '0');
+    text = hh + ':' + mm;
+  }
+
+  // 5x7 dot patterns for digits 0-9 and colon
+  const PATTERNS = {
+    '0': ['01110','10001','10011','10101','11001','10001','01110'],
+    '1': ['00100','01100','00100','00100','00100','00100','01110'],
+    '2': ['01110','10001','00001','00010','00100','01000','11111'],
+    '3': ['01110','10001','00001','00110','00001','10001','01110'],
+    '4': ['00010','00110','01010','10010','11111','00010','00010'],
+    '5': ['11111','10000','11110','00001','00001','10001','01110'],
+    '6': ['00110','01000','10000','11110','10001','10001','01110'],
+    '7': ['11111','00001','00010','00100','01000','01000','01000'],
+    '8': ['01110','10001','10001','01110','10001','10001','01110'],
+    '9': ['01110','10001','10001','01111','00001','00010','01100'],
+    ':': ['00000','00100','00100','00000','00100','00100','00000']
+  };
+
+  // sizing
+  const dotRadius = Math.max(1, r * 0.015 * vfdScaleRel);
+  const dotSpacing = dotRadius * 2.4;
+  const cols = 5;
+  const rows = 7;
+  const squareSize = dotRadius * 2;
+  const cornerRadius = Math.max(1, dotRadius * vfdCornerRel);
+
+  // gap between character groups (expressed as center-to-center distance for adjacent columns)
+  // Base factor 1.3 is preserved, plus a user-controllable relative addition `vfdDigitGapRel`.
+  const gapBetweenDigits = dotSpacing * (1.3 + Number(vfdDigitGapRel || 0));
+  // glow multiplier used everywhere
+  const glow = dotRadius * Math.max(0, vfdGlowRel);
+
+  // Build a sequence of column counts for each character (digits => cols, colon => 1)
+  const colCounts = [];
+  for (let i = 0; i < text.length; i++) {
+    colCounts.push(text[i] === ':' ? 1 : cols);
+  }
+
+  // Compute total columns and total width: base spacing between adjacent columns is dotSpacing.
+  const totalCols = colCounts.reduce((s, c) => s + c, 0);
+  // between-block extra spacing (we want gapBetweenDigits instead of plain dotSpacing at block boundaries)
+  const numBlocks = colCounts.length;
+  // compute per-boundary extra spacing and include colon-specific padding (vfdColonPadding is in dot units)
+  const boundaryExtras = [];
+  for (let i = 0; i < numBlocks - 1; i++) {
+    let extra = Math.max(0, gapBetweenDigits - dotSpacing);
+    // increase extra when the boundary touches a colon so the colon slider has effect
+    if (text[i] === ':' || text[i+1] === ':') {
+      extra += vfdColonPadding * dotSpacing;
+    }
+    boundaryExtras.push(extra);
+  }
+  const totalWidth = (totalCols - 1) * dotSpacing + boundaryExtras.reduce((s, a) => s + a, 0);
+
+  // Starting X (leftmost column center)
+  const startX = - totalWidth / 2;
+  // vertical placement
+  const startY = r * vfdYOffsetRel - (rows - 1) * dotSpacing / 2;
+
+  // Build center X positions for every column of every character (so digits and colon align on same grid)
+  const centers = []; // array per character: array of x centers
+  let cursorX = startX;
+  for (let ci = 0; ci < colCounts.length; ci++) {
+    const cc = colCounts[ci];
+    const thisCenters = [];
+    for (let c = 0; c < cc; c++) {
+      thisCenters.push(cursorX + c * dotSpacing);
+    }
+    centers.push(thisCenters);
+    // advance cursor: cc columns take (cc-1)*dotSpacing width; move to next first-column position
+    cursorX += (cc - 1) * dotSpacing + dotSpacing;
+    if (ci < boundaryExtras.length) cursorX += boundaryExtras[ci];
+  }
+
+  const dotColor = vfdColor;
+  localCtx.save();
+  localCtx.globalCompositeOperation = 'lighter';
+
+  function fillRoundedSquare(cx, cy, size, radius) {
+    const half = size / 2;
+    const x = cx - half;
+    const y = cy - half;
+    const rcorn = Math.min(radius, half);
+    localCtx.beginPath();
+    localCtx.moveTo(x + rcorn, y);
+    localCtx.lineTo(x + size - rcorn, y);
+    localCtx.quadraticCurveTo(x + size, y, x + size, y + rcorn);
+    localCtx.lineTo(x + size, y + size - rcorn);
+    localCtx.quadraticCurveTo(x + size, y + size, x + size - rcorn, y + size);
+    localCtx.lineTo(x + rcorn, y + size);
+    localCtx.quadraticCurveTo(x, y + size, x, y + size - rcorn);
+    localCtx.lineTo(x, y + rcorn);
+    localCtx.quadraticCurveTo(x, y, x + rcorn, y);
+    localCtx.closePath();
+    localCtx.fill();
+  }
+
+  // Draw each character by consulting centers[][] and PATTERNS
+  for (let chi = 0; chi < text.length; chi++) {
+    const ch = text[chi];
+    const pattern = PATTERNS[ch] || PATTERNS['0'];
+    const thisCenters = centers[chi];
+    
+    // For digits, pattern columns map 0..4 -> thisCenters[0..4]
+    // For colon (1 column) we check pattern[row][2] and draw at thisCenters[0]
+    for (let rrow = 0; rrow < rows; rrow++) {
+      const row = pattern[rrow];
+      if (!row) continue;
+      
+      if (testAll) {
+        // Test mode: draw all possible dots
+        if (ch === ':') {
+          const x = thisCenters[0];
+          const y = startY + rrow * dotSpacing;
+          localCtx.fillStyle = dotColor;
+          localCtx.shadowBlur = glow;
+          localCtx.shadowColor = dotColor;
+          fillRoundedSquare(x, y, squareSize, cornerRadius);
+        } else {
+          for (let ccol = 0; ccol < thisCenters.length; ccol++) {
+            const x = thisCenters[ccol];
+            const y = startY + rrow * dotSpacing;
+            localCtx.fillStyle = dotColor;
+            localCtx.shadowBlur = glow;
+            localCtx.shadowColor = dotColor;
+            fillRoundedSquare(x, y, squareSize, cornerRadius);
+          }
+        }
+      } else {
+        // Normal mode: use pattern table
+        if (ch === ':') {
+          if (row[2] === '1') {
+            const x = thisCenters[0];
+            const y = startY + rrow * dotSpacing;
+            localCtx.fillStyle = dotColor;
+            localCtx.shadowBlur = glow;
+            localCtx.shadowColor = dotColor;
+            fillRoundedSquare(x, y, squareSize, cornerRadius);
+          }
+        } else {
+          for (let ccol = 0; ccol < thisCenters.length; ccol++) {
+            if (row[ccol] === '1') {
+              const x = thisCenters[ccol];
+              const y = startY + rrow * dotSpacing;
+              localCtx.fillStyle = dotColor;
+              localCtx.shadowBlur = glow;
+              localCtx.shadowColor = dotColor;
+              fillRoundedSquare(x, y, squareSize, cornerRadius);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  localCtx.shadowBlur = 0;
+  localCtx.restore();
 }
 
 function drawFace(size, r) {
@@ -540,6 +835,40 @@ function drawFace(size, r) {
     ctx.moveTo(xInner, yInner);
     ctx.lineTo(xOuter, yOuter);
     ctx.stroke();
+  }
+
+  // VFD digital preview on backface (lower half)
+  // Only render the VFD into the offscreen canvas when the minute or VFD settings change,
+  // but blit the cached offscreen canvas every frame so it remains visible.
+  const nowForVFD = new Date();
+  const currentHourMinute = `${String(nowForVFD.getHours()).padStart(2, '0')}:${String(nowForVFD.getMinutes()).padStart(2, '0')}`;
+  const currentVFDSettings = getVFDSettingsHash();
+
+  // Ensure offscreen canvas exists and has correct transform (resizeCanvas should have created it)
+  if (!vfdCanvas) {
+    // fallback: create minimal offscreen canvas
+    vfdCanvas = document.createElement('canvas');
+    vfdCanvas.width = size; vfdCanvas.height = size; vfdCanvasSize = size;
+    vfdCtx = vfdCanvas.getContext('2d');
+    vfdCtx.setTransform(1,0,0,1,0,0); vfdCtx.translate(r, r);
+    lastVFDHourMinute = '';
+    lastVFDSettings = '';
+  }
+
+  if (currentHourMinute !== lastVFDHourMinute || currentVFDSettings !== lastVFDSettings) {
+    // update cached VFD image
+    lastVFDHourMinute = currentHourMinute;
+    lastVFDSettings = currentVFDSettings;
+    // clear offscreen and draw into it
+    vfdCtx.setTransform(1,0,0,1,0,0);
+    vfdCtx.clearRect(0, 0, vfdCanvas.width, vfdCanvas.height);
+    vfdCtx.translate(r, r);
+    drawVFDDisplay(size, r, vfdCtx);
+  }
+
+  // Blit cached VFD to main canvas (fast)
+  if (vfdCanvas) {
+    ctx.drawImage(vfdCanvas, -r, -r);
   }
 
   // Numbers: 5, 10, ... 55, and 60 at the top
@@ -595,8 +924,6 @@ function drawDiamondHand(angle, color, r) {
   ctx.moveTo(0, 0);
   ctx.lineTo(shaftEndX, shaftEndY);
   ctx.stroke();
-
-  // ===== Diamond head =====
   const frontX = nx * tipRadius;            // outer tip on tick circle
   const frontY = ny * tipRadius;
 
@@ -783,6 +1110,25 @@ const minuteColorInput         = document.getElementById('minuteColorInput');
 const minuteColorValue         = document.getElementById('minuteColorValue');
 const showMinuteCheckbox       = document.getElementById('showMinuteCheckbox');
 
+// VFD control elements
+const showVFDCheckbox          = document.getElementById('showVFDCheckbox');
+const vfdColorInput            = document.getElementById('vfdColorInput');
+const vfdColorVal              = document.getElementById('vfdColorVal');
+const vfdTestModeSelect        = document.getElementById('vfdTestModeSelect');
+const vfdTestModeVal           = document.getElementById('vfdTestModeVal');
+const vfdSizeRelSlider         = document.getElementById('vfdSizeRelSlider');
+const vfdSizeRelVal            = document.getElementById('vfdSizeRelVal');
+const vfdYOffsetSlider         = document.getElementById('vfdYOffsetSlider');
+const vfdYOffsetVal            = document.getElementById('vfdYOffsetVal');
+const vfdColonPaddingSlider    = document.getElementById('vfdColonPaddingSlider');
+const vfdColonPaddingVal       = document.getElementById('vfdColonPaddingVal');
+const vfdDigitGapRelSlider     = document.getElementById('vfdDigitGapRelSlider');
+const vfdDigitGapRelVal        = document.getElementById('vfdDigitGapRelVal');
+const vfdCornerRelSlider       = document.getElementById('vfdCornerRelSlider');
+const vfdCornerRelVal          = document.getElementById('vfdCornerRelVal');
+const vfdGlowRelSlider         = document.getElementById('vfdGlowRelSlider');
+const vfdGlowRelVal            = document.getElementById('vfdGlowRelVal');
+
 const bgScaleRelSlider        = document.getElementById('bgScaleRelSlider');
 const bgScaleRelValue         = document.getElementById('bgScaleRelValue');
 
@@ -856,6 +1202,25 @@ function syncControls() {
   minuteDiamondWidthRelValue.textContent = minuteDiamondWidthRel.toFixed(3);
   minuteColorInput.value        = minuteColor;
   minuteColorValue.textContent  = minuteColor;
+
+  // VFD controls
+  showVFDCheckbox.checked      = vfdEnabled;
+  vfdColorInput.value          = vfdColor;
+  vfdColorVal.textContent      = vfdColor;
+  vfdTestModeSelect.value      = vfdTestMode;
+  vfdTestModeVal.textContent   = vfdTestMode;
+  vfdSizeRelSlider.value       = vfdScaleRel;
+  vfdSizeRelVal.textContent    = vfdScaleRel.toFixed(2);
+  vfdYOffsetSlider.value       = vfdYOffsetRel;
+  vfdYOffsetVal.textContent    = vfdYOffsetRel.toFixed(2);
+  vfdColonPaddingSlider.value  = vfdColonPadding;
+  vfdColonPaddingVal.textContent = vfdColonPadding.toFixed(2);
+  vfdDigitGapRelSlider.value   = vfdDigitGapRel;
+  vfdDigitGapRelVal.textContent= vfdDigitGapRel.toFixed(2);
+  vfdCornerRelSlider.value     = vfdCornerRel;
+  vfdCornerRelVal.textContent  = vfdCornerRel.toFixed(2);
+  vfdGlowRelSlider.value       = vfdGlowRel;
+  vfdGlowRelVal.textContent    = vfdGlowRel.toFixed(2);
 
   runClockCheckbox.checked      = runClock;
   showLogoCheckbox.checked      = showLogo;
@@ -935,6 +1300,51 @@ numberRadiusRelSlider.addEventListener('input', () => {
 minuteShaftWidthRelSlider.addEventListener('input', () => {
   minuteShaftWidthRel = parseFloat(minuteShaftWidthRelSlider.value);
   minuteShaftWidthRelValue.textContent = minuteShaftWidthRel.toFixed(3);
+});
+
+// VFD control handlers
+vfdColorInput.addEventListener('input', () => {
+  vfdColor = vfdColorInput.value;
+  vfdColorVal.textContent = vfdColor;
+});
+
+vfdTestModeSelect.addEventListener('change', () => {
+  vfdTestMode = vfdTestModeSelect.value;
+  vfdTestModeVal.textContent = vfdTestMode;
+});
+
+vfdSizeRelSlider.addEventListener('input', () => {
+  vfdScaleRel = parseFloat(vfdSizeRelSlider.value);
+  vfdSizeRelVal.textContent = vfdScaleRel.toFixed(2);
+});
+
+vfdYOffsetSlider.addEventListener('input', () => {
+  vfdYOffsetRel = parseFloat(vfdYOffsetSlider.value);
+  vfdYOffsetVal.textContent = vfdYOffsetRel.toFixed(2);
+});
+
+vfdColonPaddingSlider.addEventListener('input', () => {
+  vfdColonPadding = parseFloat(vfdColonPaddingSlider.value);
+  vfdColonPaddingVal.textContent = vfdColonPadding.toFixed(2);
+});
+
+vfdDigitGapRelSlider.addEventListener('input', () => {
+  vfdDigitGapRel = parseFloat(vfdDigitGapRelSlider.value);
+  vfdDigitGapRelVal.textContent = vfdDigitGapRel.toFixed(2);
+});
+
+vfdCornerRelSlider.addEventListener('input', () => {
+  vfdCornerRel = parseFloat(vfdCornerRelSlider.value);
+  vfdCornerRelVal.textContent = vfdCornerRel.toFixed(2);
+});
+
+vfdGlowRelSlider.addEventListener('input', () => {
+  vfdGlowRel = parseFloat(vfdGlowRelSlider.value);
+  vfdGlowRelVal.textContent = vfdGlowRel.toFixed(2);
+});
+
+showVFDCheckbox.addEventListener('change', () => {
+  vfdEnabled = showVFDCheckbox.checked;
 });
 
 minuteTipRelSlider.addEventListener('input', () => {
@@ -1044,6 +1454,17 @@ function buildConfigUrl() {
   addFloat('minuteDiamondBackRel', minuteDiamondBackRel, DEFAULT_minuteDiamondBackRel);
   addFloat('minuteDiamondWidthRel', minuteDiamondWidthRel, DEFAULT_minuteDiamondWidthRel);
   if (minuteColor !== DEFAULT_minuteColor) qs.set('minuteColor', minuteColor);
+
+  // VFD settings
+  addBool('vfdEnabled', vfdEnabled, DEFAULT_vfdEnabled);
+  if (vfdColor !== DEFAULT_vfdColor) qs.set('vfdColor', vfdColor);
+  addFloat('vfdScaleRel', vfdScaleRel, DEFAULT_vfdScaleRel);
+  addFloat('vfdYOffsetRel', vfdYOffsetRel, DEFAULT_vfdYOffsetRel);
+  addFloat('vfdColonPadding', vfdColonPadding, DEFAULT_vfdColonPadding);
+  addFloat('vfdDigitGapRel', vfdDigitGapRel, DEFAULT_vfdDigitGapRel);
+  addFloat('vfdCornerRel', vfdCornerRel, DEFAULT_vfdCornerRel);
+  addFloat('vfdGlowRel', vfdGlowRel, DEFAULT_vfdGlowRel);
+  if (vfdTestMode !== 'normal') qs.set('vfdTestMode', vfdTestMode);
 
   addBool('showLogo', showLogo, DEFAULT_showLogo);
   addBool('runClock', runClock, DEFAULT_runClock);
