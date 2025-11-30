@@ -319,6 +319,37 @@
         <span class="value" id="copyUrlStatus"></span>
       </div>
     </details>
+  <details>
+      <summary class="groupTitle">Screen Saver Drift (setupmode only)</summary>
+      <div class="controls">
+        <label style="flex-direction:row;align-items:center;gap:8px;">
+          <input id="driftEnabledCheckbox" type="checkbox" /> Enable drift
+        </label>
+        <label>
+          Base speed (rel) (very small)
+          <input id="driftSpeedRelSlider" type="range" min="0.0000001" max="0.0002" step="0.0000001" />
+          <span class="value" id="driftSpeedRelValue"></span>
+        </label>
+        <label>
+          Direction (degrees)
+          <input id="driftAngleDegSlider" type="range" min="0" max="359" step="1" />
+          <span class="value" id="driftAngleDegValue"></span>
+        </label>
+        <label>
+          Edge margin (0–0.2)
+          <input id="driftMarginRelSlider" type="range" min="0.01" max="0.2" step="0.001" />
+          <span class="value" id="driftMarginRelValue"></span>
+        </label>
+        <label>
+          Setup speed multiplier
+          <input id="driftSetupMultiplierSlider" type="range" min="1" max="300" step="1" />
+          <span class="value" id="driftSetupMultiplierValue"></span>
+        </label>
+        <label style="flex-direction:row;align-items:center;gap:8px;">
+          <button id="driftResetButton" type="button">Randomize drift</button>
+        </label>
+      </div>
+    </details>
   </div>
 
   <div id="rightPanel">
@@ -432,6 +463,13 @@ const DEFAULT_vfdCornerRel       = 0.25;  // corner radius relative to dotRadius
 const DEFAULT_vfdGlowRel         = 0.000;   // shadow blur multiplier
 const DEFAULT_vfdDigitGapRel     = 0.380;   // extra digit spacing multiplier (adds to base gap factor)
 
+// Drift / screensaver defaults
+const DEFAULT_driftEnabled       = true;     // enable very slow drift by default
+const DEFAULT_driftSpeedRel      = 0.00002;  // relative to diagonal length per frame
+const DEFAULT_driftMarginRel     = 0.05;     // margin from each canvas edge (fraction of min dimension)
+const DEFAULT_driftSetupMultiplier = 120;    // speed multiplier when in setupmode for visibility
+const DEFAULT_driftAngleDeg       = 45;      // default drift direction in degrees (45° diagonal)
+
 // Live values (start at defaults)
 let outerRel            = DEFAULT_outerRel;
 let minorInnerRel       = DEFAULT_minorInnerRel;
@@ -460,6 +498,16 @@ let minuteDiamondBackRel = DEFAULT_minuteDiamondBackRel;
 let minuteDiamondWidthRel = DEFAULT_minuteDiamondWidthRel;
 let minuteColor         = DEFAULT_minuteColor;
 let showMinute          = DEFAULT_showMinute;
+// Drift live values (start at defaults)
+let driftEnabled        = DEFAULT_driftEnabled;
+let driftSpeedRel       = DEFAULT_driftSpeedRel;
+let driftMarginRel      = DEFAULT_driftMarginRel;
+let driftSetupMultiplier = DEFAULT_driftSetupMultiplier;
+let driftOffsetX        = 0;
+let driftOffsetY        = 0;
+let driftVelX           = 0;
+let driftVelY           = 0;
+let driftAngleDeg       = DEFAULT_driftAngleDeg;
 // VFD live values
 let vfdEnabled          = DEFAULT_vfdEnabled;
 let vfdColor            = DEFAULT_vfdColor;
@@ -510,6 +558,13 @@ vfdGlowRel      = paramFloat('vfdGlowRel', vfdGlowRel);
 vfdTestMode     = params.get('vfdTestMode') || vfdTestMode;
 vfdDigitGapRel  = paramFloat('vfdDigitGapRel', vfdDigitGapRel);
 
+// Drift params
+driftEnabled        = paramBool('driftEnabled', driftEnabled);
+driftSpeedRel       = paramFloat('driftSpeedRel', driftSpeedRel);
+driftMarginRel      = paramFloat('driftMarginRel', driftMarginRel);
+driftSetupMultiplier = paramFloat('driftSetupMultiplier', driftSetupMultiplier);
+driftAngleDeg       = paramFloat('driftAngleDeg', driftAngleDeg);
+
 // Reference background image for local use (ignored if not found)
 const bgImage = new Image();
 bgImage.src = 'bsk_klokke.png';
@@ -558,34 +613,106 @@ function getVFDSettingsHash() {
   return `${vfdEnabled}|${vfdColor}|${vfdScaleRel}|${vfdYOffsetRel}|${vfdColonPadding}|${vfdCornerRel}|${vfdGlowRel}|${vfdDigitGapRel}|${vfdTestMode}`;
 }
 
-function resizeCanvas() {
-  const vh = window.innerHeight || 800;
-  const clockDiameter = vh * outerRel;
-  const size = clockDiameter;
-  canvas.width = size;
-  canvas.height = size;
-  const r = size / 2;
+function resizeCanvasToPanel() {
+  const rightPanel = document.getElementById('rightPanel');
+  const canvas = document.getElementById('clock');
+  // Get panel size
+  const w = rightPanel.clientWidth;
+  const h = rightPanel.clientHeight;
+  canvas.width = w;
+  canvas.height = h;
+}
+window.addEventListener('resize', resizeCanvasToPanel);
+resizeCanvasToPanel();
 
-  // Reset transform and move origin to centre
-  ctx.setTransform(1,0,0,1,0,0);
-  ctx.translate(r, r);
+function getCanvasCenterAndRadius() {
+  const canvas = document.getElementById('clock');
+  const w = canvas.width;
+  const h = canvas.height;
+  const base = Math.min(w, h);
+  // outerRel defines diameter proportion of the smaller dimension
+  const r = base * outerRel * 0.5; // radius
+  return { cx: w / 2, cy: h / 2, r };
+}
 
-  // Keep our offscreen VFD canvas in sync with the main canvas size
-  if (!vfdCanvas || vfdCanvasSize !== size) {
-    vfdCanvas = document.createElement('canvas');
-    vfdCanvas.width = size;
-    vfdCanvas.height = size;
-    vfdCanvasSize = size;
-    vfdCtx = vfdCanvas.getContext('2d');
-    // Match transforms: origin at center so drawVFDDisplay can draw with same coordinates
-    vfdCtx.setTransform(1,0,0,1,0,0);
-    vfdCtx.translate(r, r);
-    // Force VFD to re-render after a resize
-    lastVFDHourMinute = '';
-    lastVFDSettings = '';
+function initializeDrift(w, h) {
+  if (!driftEnabled) return;
+  const diag = Math.hypot(w, h);
+  const speed = diag * driftSpeedRel * (showSetupPanel ? driftSetupMultiplier : 1);
+  const angle = (driftAngleDeg % 360) * Math.PI / 180;
+  driftVelX = Math.cos(angle) * speed;
+  driftVelY = Math.sin(angle) * speed;
+  // compute max offsets so clock stays within margin
+  const { r } = getCanvasCenterAndRadius();
+  const marginPx = Math.min(w, h) * driftMarginRel;
+  const maxX = (w / 2) - marginPx - r;
+  const maxY = (h / 2) - marginPx - r;
+  // If margin eliminates available space, pin to center and stop movement
+  if (maxX <= 0 || maxY <= 0) {
+    driftOffsetX = 0;
+    driftOffsetY = 0;
+    driftVelX = 0;
+    driftVelY = 0;
+    return;
   }
+  driftOffsetX = (Math.random() * 2 - 1) * maxX;
+  driftOffsetY = (Math.random() * 2 - 1) * maxY;
+}
 
-  return { size, r };
+function updateDrift(w, h) {
+  if (!driftEnabled) return;
+  driftOffsetX += driftVelX;
+  driftOffsetY += driftVelY;
+  const { r } = getCanvasCenterAndRadius();
+  const marginPx = Math.min(w, h) * driftMarginRel;
+  const maxX = (w / 2) - marginPx - r;
+  const maxY = (h / 2) - marginPx - r;
+  // If no space left, keep centered and abort movement
+  if (maxX <= 0 || maxY <= 0) {
+    driftOffsetX = 0;
+    driftOffsetY = 0;
+    driftVelX = 0;
+    driftVelY = 0;
+    return;
+  }
+  if (driftOffsetX > maxX) { driftOffsetX = maxX; driftVelX *= -1; }
+  else if (driftOffsetX < -maxX) { driftOffsetX = -maxX; driftVelX *= -1; }
+  if (driftOffsetY > maxY) { driftOffsetY = maxY; driftVelY *= -1; }
+  else if (driftOffsetY < -maxY) { driftOffsetY = -maxY; driftVelY *= -1; }
+}
+
+// Offscreen cache for static face (ticks + numbers)
+let faceCanvas = null;
+let faceCtx = null;
+let faceCanvasSize = 0;
+let lastFaceSettings = '';
+
+function getFaceSettingsHash() {
+  return [
+    outerRel, minorInnerRel, majorInnerRel, minorOuterRel,
+    minorWidthRel, majorWidthRel, numberRadiusRel, numberFontRel,
+    centerCircleRel, shaftWidthRel, tipRel, diamondBaseInsetRel,
+    diamondBackRel, diamondWidthRel,
+    ...[5,10,15,20,25,30,35,40,45,50,55,60].map(n => `${n}:${numberOffsets[n].x},${numberOffsets[n].y}`)
+  ].join('|');
+}
+
+function ensureFaceCache(size, r) {
+  if (!fontReady) return;
+  const hash = getFaceSettingsHash();
+  if (faceCanvas && faceCanvasSize === size && hash === lastFaceSettings) return;
+  faceCanvasSize = size;
+  lastFaceSettings = hash;
+  faceCanvas = document.createElement('canvas');
+  faceCanvas.width = size;
+  faceCanvas.height = size;
+  faceCtx = faceCanvas.getContext('2d');
+  faceCtx.clearRect(0, 0, size, size);
+  faceCtx.save();
+  faceCtx.translate(size/2, size/2);
+  // draw ticks and numbers into the cache
+  renderFaceStatic(faceCtx, size, r);
+  faceCtx.restore();
 }
 
 function drawBackground(size, r) {
@@ -661,8 +788,8 @@ function drawVFDDisplay(size, r, targetCtx) {
     ':': ['00000','00100','00100','00000','00100','00100','00000']
   };
 
-  // sizing
-  const dotRadius = Math.max(1, r * 0.015 * vfdScaleRel);
+  // sizing (allow very small clocks to shrink dots further; keep a low floor for visibility)
+  const dotRadius = Math.max(0.25, r * 0.015 * vfdScaleRel);
   const dotSpacing = dotRadius * 2.4;
   const cols = 5;
   const rows = 7;
@@ -802,99 +929,77 @@ function drawVFDDisplay(size, r, targetCtx) {
   localCtx.restore();
 }
 
-function drawFace(size, r) {
-  const clockRadius = r;                  // full clock radius
-  const outerTickRadius = clockRadius;    // outer end of all *major* ticks
-  const minorOuterRadius = clockRadius * minorOuterRel; // outer end of small ticks
-
-  // Derived radii
+function renderFaceStatic(localCtx, size, r) {
+  const clockRadius = r;
+  const outerTickRadius = clockRadius;
+  const minorOuterRadius = clockRadius * minorOuterRel;
   const minorInnerRadius = clockRadius * minorInnerRel;
   const majorInnerRadius = clockRadius * majorInnerRel;
 
-  // Tick lengths
-  const minorLen = minorOuterRadius - minorInnerRadius;
-  const majorLen = outerTickRadius - majorInnerRadius;
-
-  // Second marks
+  // Ticks
   for (let s = 0; s < 60; s++) {
     const angle = (Math.PI * 2) * (s / 60) - Math.PI / 2;
-
     const outer = (s % 5 === 0) ? outerTickRadius : minorOuterRadius;
     const inner = (s % 5 === 0) ? majorInnerRadius : minorInnerRadius;
     const widthRel = (s % 5 === 0) ? majorWidthRel : minorWidthRel;
-
-    ctx.strokeStyle = 'white';
-    ctx.lineWidth = clockRadius * widthRel; // width relative to clock size
-
+    localCtx.strokeStyle = 'white';
+    localCtx.lineWidth = clockRadius * widthRel;
     const xOuter = Math.cos(angle) * outer;
     const yOuter = Math.sin(angle) * outer;
     const xInner = Math.cos(angle) * inner;
     const yInner = Math.sin(angle) * inner;
-
-    ctx.beginPath();
-    ctx.moveTo(xInner, yInner);
-    ctx.lineTo(xOuter, yOuter);
-    ctx.stroke();
+    localCtx.beginPath();
+    localCtx.moveTo(xInner, yInner);
+    localCtx.lineTo(xOuter, yOuter);
+    localCtx.stroke();
   }
 
-  // VFD digital preview on backface (lower half)
-  // Only render the VFD into the offscreen canvas when the minute or VFD settings change,
-  // but blit the cached offscreen canvas every frame so it remains visible.
-  const nowForVFD = new Date();
-  const currentHourMinute = `${String(nowForVFD.getHours()).padStart(2, '0')}:${String(nowForVFD.getMinutes()).padStart(2, '0')}`;
-  const currentVFDSettings = getVFDSettingsHash();
-
-  // Ensure offscreen canvas exists and has correct transform (resizeCanvas should have created it)
-  if (!vfdCanvas) {
-    // fallback: create minimal offscreen canvas
-    vfdCanvas = document.createElement('canvas');
-    vfdCanvas.width = size; vfdCanvas.height = size; vfdCanvasSize = size;
-    vfdCtx = vfdCanvas.getContext('2d');
-    vfdCtx.setTransform(1,0,0,1,0,0); vfdCtx.translate(r, r);
-    lastVFDHourMinute = '';
-    lastVFDSettings = '';
-  }
-
-  if (currentHourMinute !== lastVFDHourMinute || currentVFDSettings !== lastVFDSettings) {
-    // update cached VFD image
-    lastVFDHourMinute = currentHourMinute;
-    lastVFDSettings = currentVFDSettings;
-    // clear offscreen and draw into it
-    vfdCtx.setTransform(1,0,0,1,0,0);
-    vfdCtx.clearRect(0, 0, vfdCanvas.width, vfdCanvas.height);
-    vfdCtx.translate(r, r);
-    drawVFDDisplay(size, r, vfdCtx);
-  }
-
-  // Blit cached VFD to main canvas (fast)
-  if (vfdCanvas) {
-    ctx.drawImage(vfdCanvas, -r, -r);
-  }
-
-  // Numbers: 5, 10, ... 55, and 60 at the top
-  // Skip rendering numbers until custom font is loaded to avoid flicker
+  // Numbers (requires fontReady)
   if (!fontReady) return;
-
   const numberRadius = clockRadius * numberRadiusRel;
-
-  ctx.fillStyle = 'white';
-  ctx.font = `${Math.round(clockRadius * numberFontRel)}px 'BFont', Arial, sans-serif`;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-
+  localCtx.fillStyle = 'white';
+  localCtx.font = `${Math.round(clockRadius * numberFontRel)}px 'BFont', Arial, sans-serif`;
+  localCtx.textAlign = 'center';
+  localCtx.textBaseline = 'middle';
   for (let s = 0; s < 60; s += 5) {
     const angle = (Math.PI * 2) * (s / 60) - Math.PI / 2;
     let x = Math.cos(angle) * numberRadius;
     let y = Math.sin(angle) * numberRadius;
     const label = (s === 0) ? '60' : String(s);
-    // Apply offset if present
     const offset = numberOffsets[s === 0 ? 60 : s];
     if (offset) {
       x += offset.x * r;
       y += offset.y * r;
     }
-    ctx.fillText(label, x, y);
+    localCtx.fillText(label, x, y);
   }
+}
+
+function updateAndBlitVFD(targetCtx, size, r) {
+  if (!vfdEnabled) return;
+  const nowForVFD = new Date();
+  const currentHourMinute = `${String(nowForVFD.getHours()).padStart(2, '0')}:${String(nowForVFD.getMinutes()).padStart(2, '0')}`;
+  const currentVFDSettings = getVFDSettingsHash();
+  const sizeChanged = (vfdCanvasSize !== size);
+  if (!vfdCanvas || sizeChanged) {
+    vfdCanvas = document.createElement('canvas');
+    vfdCanvas.width = size;
+    vfdCanvas.height = size;
+    vfdCanvasSize = size;
+    vfdCtx = vfdCanvas.getContext('2d');
+    // force redraw by invalidating previous state
+    lastVFDHourMinute = '';
+    lastVFDSettings = '';
+  }
+  if (sizeChanged || currentHourMinute !== lastVFDHourMinute || currentVFDSettings !== lastVFDSettings) {
+    lastVFDHourMinute = currentHourMinute;
+    lastVFDSettings = currentVFDSettings;
+    vfdCtx.setTransform(1,0,0,1,0,0);
+    vfdCtx.clearRect(0, 0, vfdCanvas.width, vfdCanvas.height);
+    vfdCtx.translate(size/2, size/2);
+    drawVFDDisplay(size, r, vfdCtx);
+  }
+  targetCtx.drawImage(vfdCanvas, -size/2, -size/2);
 }
 
 function drawDiamondHand(angle, color, r) {
@@ -1024,11 +1129,25 @@ function drawCenterElement(r, baseAngle) {
   }
 }
 
-function frame() {
-  const { size, r } = resizeCanvas();
-  ctx.clearRect(-r, -r, size, size);
+function drawClock() {
+  // Assumes the caller already cleared the canvas
+  const canvas = document.getElementById('clock');
+  const ctx = canvas.getContext('2d');
+  const { cx, cy, r } = getCanvasCenterAndRadius();
+  ctx.save();
+  ctx.translate(cx + driftOffsetX, cy + driftOffsetY);
+  const size = r * 2;
   drawBackground(size, r);
-  drawFace(size, r);
+  ensureFaceCache(size, r);
+  if (faceCanvas) {
+    // faceCanvas is centered; draw with current drift translation already applied
+    ctx.drawImage(faceCanvas, -r, -r);
+  } else {
+    // Fallback: render static face directly until cache becomes available
+    renderFaceStatic(ctx, size, r);
+  }
+  // VFD is separate cached layer
+  updateAndBlitVFD(ctx, size, r);
 
   let baseAngle;
   if (runClock) {
@@ -1059,10 +1178,27 @@ function frame() {
   // Center element on top of all hands (logo or circle)
   drawCenterElement(r, baseAngle);
 
+  ctx.restore();
+}
+
+function frame() {
+  // Ensure canvas matches panel size
+  resizeCanvasToPanel();
+  // Clear full canvas in absolute coordinates
+  const canvas = document.getElementById('clock');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  updateDrift(canvas.width, canvas.height);
+  // Draw one frame of the clock
+  // If font just became ready and cache is missing, build it
+  const { r } = getCanvasCenterAndRadius();
+  const size = r * 2;
+  if (fontReady && !faceCanvas) ensureFaceCache(size, r);
+  drawClock();
   requestAnimationFrame(frame);
 }
 
-frame();
+initializeDrift(canvas.width, canvas.height);
+requestAnimationFrame(frame);
 
 // ===== Slider wiring (all relative parameters) =====
 
@@ -1141,6 +1277,17 @@ const logoSizeRelValue        = document.getElementById('logoSizeRelValue');
 const showBgCheckbox          = document.getElementById('showBgCheckbox');
 const copyUrlButton           = document.getElementById('copyUrlButton');
 const copyUrlStatus           = document.getElementById('copyUrlStatus');
+// Drift controls (only shown if setupmode, but we still query safely)
+const driftEnabledCheckbox    = document.getElementById('driftEnabledCheckbox');
+const driftSpeedRelSlider     = document.getElementById('driftSpeedRelSlider');
+const driftSpeedRelValue      = document.getElementById('driftSpeedRelValue');
+const driftMarginRelSlider    = document.getElementById('driftMarginRelSlider');
+const driftMarginRelValue     = document.getElementById('driftMarginRelValue');
+const driftSetupMultiplierSlider = document.getElementById('driftSetupMultiplierSlider');
+const driftSetupMultiplierValue  = document.getElementById('driftSetupMultiplierValue');
+const driftResetButton        = document.getElementById('driftResetButton');
+const driftAngleDegSlider     = document.getElementById('driftAngleDegSlider');
+const driftAngleDegValue      = document.getElementById('driftAngleDegValue');
 
 function syncControls() {
   outerRelSlider.value          = outerRel;
@@ -1230,6 +1377,25 @@ function syncControls() {
   manualAngleSlider.disabled    = runClock;
   manualAngleValue.textContent  = manualAngle.toFixed(3);
   showBgCheckbox.checked        = showBg;
+  if (driftEnabledCheckbox) {
+    driftEnabledCheckbox.checked = driftEnabled;
+    if (driftSpeedRelSlider) {
+      driftSpeedRelSlider.value = driftSpeedRel;
+      driftSpeedRelValue.textContent = driftSpeedRel.toFixed(7);
+    }
+    if (driftAngleDegSlider) {
+      driftAngleDegSlider.value = driftAngleDeg;
+      driftAngleDegValue.textContent = driftAngleDeg.toFixed(0) + '°';
+    }
+    if (driftMarginRelSlider) {
+      driftMarginRelSlider.value = driftMarginRel;
+      driftMarginRelValue.textContent = driftMarginRel.toFixed(3);
+    }
+    if (driftSetupMultiplierSlider) {
+      driftSetupMultiplierSlider.value = driftSetupMultiplier;
+      driftSetupMultiplierValue.textContent = driftSetupMultiplier.toFixed(0);
+    }
+  }
 }
 
 outerRelSlider.addEventListener('input', () => {
@@ -1409,6 +1575,84 @@ showBgCheckbox.addEventListener('change', () => {
   showBg = showBgCheckbox.checked;
 });
 
+// Drift listeners
+if (driftEnabledCheckbox) {
+  driftEnabledCheckbox.addEventListener('change', () => {
+    driftEnabled = driftEnabledCheckbox.checked;
+    // Do not reset position; only resume or pause motion
+    if (!driftEnabled) {
+      driftVelX = 0; driftVelY = 0; // freeze in place
+    } else {
+      // Recompute velocity magnitude from current angle
+      const angle = (driftAngleDeg % 360) * Math.PI / 180;
+      const w = canvas.width, h = canvas.height;
+      const diag = Math.hypot(w, h);
+      const speed = diag * driftSpeedRel * (showSetupPanel ? driftSetupMultiplier : 1);
+      driftVelX = Math.cos(angle) * speed;
+      driftVelY = Math.sin(angle) * speed;
+    }
+  });
+}
+if (driftSpeedRelSlider) {
+  driftSpeedRelSlider.addEventListener('input', () => {
+    driftSpeedRel = parseFloat(driftSpeedRelSlider.value);
+    driftSpeedRelValue.textContent = driftSpeedRel.toFixed(7);
+    // Recompute velocity magnitude keeping direction and position
+    const angle = (driftAngleDeg % 360) * Math.PI / 180;
+    const diag = Math.hypot(canvas.width, canvas.height);
+    const speed = diag * driftSpeedRel * (showSetupPanel ? driftSetupMultiplier : 1);
+    driftVelX = Math.cos(angle) * speed;
+    driftVelY = Math.sin(angle) * speed;
+  });
+}
+if (driftMarginRelSlider) {
+  driftMarginRelSlider.addEventListener('input', () => {
+    driftMarginRel = parseFloat(driftMarginRelSlider.value);
+    driftMarginRelValue.textContent = driftMarginRel.toFixed(3);
+    // Clamp current offset within new bounds without resetting velocity
+    const w = canvas.width, h = canvas.height;
+    const { r } = getCanvasCenterAndRadius();
+    const marginPx = Math.min(w, h) * driftMarginRel;
+    const maxX = (w / 2) - marginPx - r;
+    const maxY = (h / 2) - marginPx - r;
+    if (maxX <= 0 || maxY <= 0) {
+      driftOffsetX = 0; driftOffsetY = 0; driftVelX = 0; driftVelY = 0; return;
+    }
+    driftOffsetX = Math.max(-maxX, Math.min(maxX, driftOffsetX));
+    driftOffsetY = Math.max(-maxY, Math.min(maxY, driftOffsetY));
+  });
+}
+if (driftSetupMultiplierSlider) {
+  driftSetupMultiplierSlider.addEventListener('input', () => {
+    driftSetupMultiplier = parseFloat(driftSetupMultiplierSlider.value);
+    driftSetupMultiplierValue.textContent = driftSetupMultiplier.toFixed(0);
+    // Scale velocity magnitude in place
+    const angle = (driftAngleDeg % 360) * Math.PI / 180;
+    const diag = Math.hypot(canvas.width, canvas.height);
+    const speed = diag * driftSpeedRel * (showSetupPanel ? driftSetupMultiplier : 1);
+    driftVelX = Math.cos(angle) * speed;
+    driftVelY = Math.sin(angle) * speed;
+  });
+}
+if (driftAngleDegSlider) {
+  driftAngleDegSlider.addEventListener('input', () => {
+    driftAngleDeg = parseFloat(driftAngleDegSlider.value);
+    driftAngleDegValue.textContent = driftAngleDeg.toFixed(0) + '°';
+    if (driftEnabled) {
+      const diag = Math.hypot(canvas.width, canvas.height);
+      const speed = diag * driftSpeedRel * (showSetupPanel ? driftSetupMultiplier : 1);
+      const angle = (driftAngleDeg % 360) * Math.PI / 180;
+      driftVelX = Math.cos(angle) * speed;
+      driftVelY = Math.sin(angle) * speed;
+    }
+  });
+}
+if (driftResetButton) {
+  driftResetButton.addEventListener('click', () => {
+    initializeDrift(canvas.width, canvas.height);
+  });
+}
+
 function buildConfigUrl() {
   const base = window.location.origin + window.location.pathname;
   const qs = new URLSearchParams();
@@ -1441,7 +1685,7 @@ function buildConfigUrl() {
   addFloat('shaftWidthRel',       shaftWidthRel,       DEFAULT_shaftWidthRel);
   addFloat('tipRel',              tipRel,              DEFAULT_tipRel);
   addFloat('diamondBaseInsetRel', diamondBaseInsetRel, DEFAULT_diamondBaseInsetRel);
-  addFloat('diamondBackRel',      diamondBackRel,      DEFAULT_diamondBackRel);
+  addFloat('diamondBackRel',           diamondBackRel,      DEFAULT_diamondBackRel);
   addFloat('diamondWidthRel',     diamondWidthRel,     DEFAULT_diamondWidthRel);
   addFloat('bgScaleRel',          bgScaleRel,          DEFAULT_bgScaleRel);
   addFloat('logoSizeRel',         logoSizeRel,         DEFAULT_logoSizeRel);
@@ -1470,6 +1714,13 @@ function buildConfigUrl() {
   addBool('runClock', runClock, DEFAULT_runClock);
   addBool('showBg', showBg, DEFAULT_showBg);
   addBool('showMinute', showMinute, DEFAULT_showMinute);
+
+  // Drift settings
+  addBool('driftEnabled', driftEnabled, DEFAULT_driftEnabled);
+  addFloat('driftSpeedRel', driftSpeedRel, DEFAULT_driftSpeedRel, 7);
+  addFloat('driftMarginRel', driftMarginRel, DEFAULT_driftMarginRel, 3);
+  addFloat('driftAngleDeg', driftAngleDeg, DEFAULT_driftAngleDeg, 0);
+  if (showSetupPanel) addFloat('driftSetupMultiplier', driftSetupMultiplier, DEFAULT_driftSetupMultiplier, 0);
 
   const query = qs.toString();
   return query ? `${base}?${query}` : base;
