@@ -290,7 +290,7 @@
       </div>
     </details>
 
-  <details>
+    <details>
       <summary class="groupTitle">Animation control</summary>
       <div class="controls" id="animControls">
         <label style="flex-direction:row;align-items:center;gap:8px;">
@@ -301,6 +301,12 @@
           <input id="manualAngleSlider" type="range" min="0" max="1" step="0.001" />
           <span class="value" id="manualAngleValue"></span>
         </label>
+      </div>
+    </details>
+
+    <details>
+      <summary class="groupTitle">Logo</summary>
+      <div class="controls" id="logoControls">
         <label style="flex-direction:row;align-items:center;gap:8px;">
           <input id="showLogoCheckbox" type="checkbox" checked /> Show rotating logo
         </label>
@@ -308,6 +314,16 @@
           Logo size (relative)
           <input id="logoSizeRelSlider" type="range" min="0" max="0.2" step="0.001" />
           <span class="value" id="logoSizeRelValue"></span>
+        </label>
+        <label>
+          Horizontal offset (rel radius)
+          <input id="logoOffsetXRelSlider" type="range" min="-0.5" max="0.5" step="0.001" />
+          <span class="value" id="logoOffsetXRelValue"></span>
+        </label>
+        <label>
+          Vertical offset (rel radius)
+          <input id="logoOffsetYRelSlider" type="range" min="-0.5" max="0.5" step="0.001" />
+          <span class="value" id="logoOffsetYRelValue"></span>
         </label>
       </div>
     </details>
@@ -448,6 +464,8 @@ const DEFAULT_minuteColor          = '#444444'; // lighter grey for contrast
 const DEFAULT_showMinute           = true;  // remain enabled by default
 const DEFAULT_bgScaleRel          = 1.073;
 const DEFAULT_logoSizeRel         = 0.120;
+const DEFAULT_logoOffsetXRel      = 0.000;
+const DEFAULT_logoOffsetYRel      = 0.000;
 const DEFAULT_showLogo            = false;
 const DEFAULT_runClock            = true;
 const DEFAULT_manualAngle         = 0.00;
@@ -487,6 +505,8 @@ let diamondBackRel      = DEFAULT_diamondBackRel;
 let diamondWidthRel     = DEFAULT_diamondWidthRel;
 let bgScaleRel          = DEFAULT_bgScaleRel;
 let logoSizeRel         = DEFAULT_logoSizeRel;
+let logoOffsetXRel      = DEFAULT_logoOffsetXRel;
+let logoOffsetYRel      = DEFAULT_logoOffsetYRel;
 let showLogo            = DEFAULT_showLogo;
 let runClock            = DEFAULT_runClock;
 let manualAngle         = DEFAULT_manualAngle;
@@ -536,6 +556,8 @@ diamondBackRel      = paramFloat('diamondBackRel', diamondBackRel);
 diamondWidthRel     = paramFloat('diamondWidthRel', diamondWidthRel);
 bgScaleRel          = paramFloat('bgScaleRel', bgScaleRel);
 logoSizeRel         = paramFloat('logoSizeRel', logoSizeRel);
+logoOffsetXRel      = paramFloat('logoOffsetXRel', logoOffsetXRel);
+logoOffsetYRel      = paramFloat('logoOffsetYRel', logoOffsetYRel);
 showLogo            = paramBool('showLogo', showLogo);
 runClock            = paramBool('runClock', runClock);
 manualAngle         = paramFloat('manualAngle', manualAngle);
@@ -1124,6 +1146,10 @@ function drawCenterElement(r, baseAngle) {
     ctx.save();
     // Rotate the logo so it is right-side-up when the blue hand (baseAngle) is at the top.
     ctx.rotate(baseAngle + Math.PI / 2);
+    // Apply user offsets relative to radius if defined
+    if (typeof logoOffsetXRel === 'number' && typeof logoOffsetYRel === 'number') {
+      ctx.translate(logoOffsetXRel * r, logoOffsetYRel * r);
+    }
     const size = logoRadius * 2;
     ctx.drawImage(centerLogoImage, -logoRadius, -logoRadius, size, size);
     ctx.restore();
@@ -1280,6 +1306,10 @@ const manualAngleValue        = document.getElementById('manualAngleValue');
 const showLogoCheckbox        = document.getElementById('showLogoCheckbox');
 const logoSizeRelSlider       = document.getElementById('logoSizeRelSlider');
 const logoSizeRelValue        = document.getElementById('logoSizeRelValue');
+const logoOffsetXRelSlider    = document.getElementById('logoOffsetXRelSlider');
+const logoOffsetXRelValue     = document.getElementById('logoOffsetXRelValue');
+const logoOffsetYRelSlider    = document.getElementById('logoOffsetYRelSlider');
+const logoOffsetYRelValue     = document.getElementById('logoOffsetYRelValue');
 const showBgCheckbox          = document.getElementById('showBgCheckbox');
 const copyUrlButton           = document.getElementById('copyUrlButton');
 const copyUrlStatus           = document.getElementById('copyUrlStatus');
@@ -1379,6 +1409,14 @@ function syncControls() {
   showLogoCheckbox.checked      = showLogo;
   logoSizeRelSlider.value       = logoSizeRel;
   logoSizeRelValue.textContent  = logoSizeRel.toFixed(3);
+  if (logoOffsetXRelSlider) {
+    logoOffsetXRelSlider.value    = logoOffsetXRel;
+    logoOffsetXRelValue.textContent = logoOffsetXRel.toFixed(3);
+  }
+  if (logoOffsetYRelSlider) {
+    logoOffsetYRelSlider.value    = logoOffsetYRel;
+    logoOffsetYRelValue.textContent = logoOffsetYRel.toFixed(3);
+  }
   manualAngleSlider.value       = manualAngle;
   manualAngleSlider.disabled    = runClock;
   manualAngleValue.textContent  = manualAngle.toFixed(3);
@@ -1572,6 +1610,19 @@ logoSizeRelSlider.addEventListener('input', () => {
   logoSizeRelValue.textContent = logoSizeRel.toFixed(3);
 });
 
+if (logoOffsetXRelSlider) {
+  logoOffsetXRelSlider.addEventListener('input', () => {
+    logoOffsetXRel = parseFloat(logoOffsetXRelSlider.value);
+    logoOffsetXRelValue.textContent = logoOffsetXRel.toFixed(3);
+  });
+}
+if (logoOffsetYRelSlider) {
+  logoOffsetYRelSlider.addEventListener('input', () => {
+    logoOffsetYRel = parseFloat(logoOffsetYRelSlider.value);
+    logoOffsetYRelValue.textContent = logoOffsetYRel.toFixed(3);
+  });
+}
+
 manualAngleSlider.addEventListener('input', () => {
   manualAngle = parseFloat(manualAngleSlider.value);
   manualAngleValue.textContent = manualAngle.toFixed(3);
@@ -1695,6 +1746,8 @@ function buildConfigUrl() {
   addFloat('diamondWidthRel',     diamondWidthRel,     DEFAULT_diamondWidthRel);
   addFloat('bgScaleRel',          bgScaleRel,          DEFAULT_bgScaleRel);
   addFloat('logoSizeRel',         logoSizeRel,         DEFAULT_logoSizeRel);
+  addFloat('logoOffsetXRel',      logoOffsetXRel,      DEFAULT_logoOffsetXRel);
+  addFloat('logoOffsetYRel',      logoOffsetYRel,      DEFAULT_logoOffsetYRel);
   addFloat('manualAngle',         manualAngle,         DEFAULT_manualAngle, 4);
 
   // Minute hand settings
