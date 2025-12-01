@@ -1138,14 +1138,8 @@ function drawClock() {
   ctx.translate(cx + driftOffsetX, cy + driftOffsetY);
   const size = r * 2;
   drawBackground(size, r);
-  ensureFaceCache(size, r);
-  if (faceCanvas) {
-    // faceCanvas is centered; draw with current drift translation already applied
-    ctx.drawImage(faceCanvas, -r, -r);
-  } else {
-    // Fallback: render static face directly until cache becomes available
-    renderFaceStatic(ctx, size, r);
-  }
+  // Temporarily disable cached face; render ticks + numbers every frame to avoid flashing
+  renderFaceStatic(ctx, size, r);
   // VFD is separate cached layer
   updateAndBlitVFD(ctx, size, r);
 
