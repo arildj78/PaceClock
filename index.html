@@ -698,21 +698,28 @@ function getFaceSettingsHash() {
 }
 
 function ensureFaceCache(size, r) {
-  if (!fontReady) return;
+  // Do not rebuild until font is ready; keep old cache to avoid blank frames
+  if (!fontReady && faceCanvas) return;
+  if (!fontReady && !faceCanvas) return; // fallback path will render directly
+
   const hash = getFaceSettingsHash();
   if (faceCanvas && faceCanvasSize === size && hash === lastFaceSettings) return;
+
+  // Double-buffer: render into a temporary canvas then swap atomically
+  const tempCanvas = document.createElement('canvas');
+  tempCanvas.width = size;
+  tempCanvas.height = size;
+  const tempCtx = tempCanvas.getContext('2d');
+  tempCtx.clearRect(0, 0, size, size);
+  tempCtx.save();
+  tempCtx.translate(size/2, size/2);
+  renderFaceStatic(tempCtx, size, r);
+  tempCtx.restore();
+
+  faceCanvas = tempCanvas;
+  faceCtx = tempCtx;
   faceCanvasSize = size;
   lastFaceSettings = hash;
-  faceCanvas = document.createElement('canvas');
-  faceCanvas.width = size;
-  faceCanvas.height = size;
-  faceCtx = faceCanvas.getContext('2d');
-  faceCtx.clearRect(0, 0, size, size);
-  faceCtx.save();
-  faceCtx.translate(size/2, size/2);
-  // draw ticks and numbers into the cache
-  renderFaceStatic(faceCtx, size, r);
-  faceCtx.restore();
 }
 
 function drawBackground(size, r) {
@@ -1138,8 +1145,13 @@ function drawClock() {
   ctx.translate(cx + driftOffsetX, cy + driftOffsetY);
   const size = r * 2;
   drawBackground(size, r);
-  // Temporarily disable cached face; render ticks + numbers every frame to avoid flashing
-  renderFaceStatic(ctx, size, r);
+  // Re-enable cached face with double-buffered rebuild and safe fallback
+  ensureFaceCache(size, r);
+  if (faceCanvas) {
+    ctx.drawImage(faceCanvas, -r, -r);
+  } else {
+    renderFaceStatic(ctx, size, r);
+  }
   // VFD is separate cached layer
   updateAndBlitVFD(ctx, size, r);
 
