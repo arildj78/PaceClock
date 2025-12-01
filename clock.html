@@ -1779,7 +1779,7 @@ function buildConfigUrl() {
   addFloat('driftSpeedRel', driftSpeedRel, DEFAULT_driftSpeedRel, 7);
   addFloat('driftMarginRel', driftMarginRel, DEFAULT_driftMarginRel, 3);
   addFloat('driftAngleDeg', driftAngleDeg, DEFAULT_driftAngleDeg, 0);
-  if (showSetupPanel) addFloat('driftSetupMultiplier', driftSetupMultiplier, DEFAULT_driftSetupMultiplier, 0);
+  // Omit driftSetupMultiplier from shared URLs (setup-only control)
 
   const query = qs.toString();
   return query ? `${base}?${query}` : base;
