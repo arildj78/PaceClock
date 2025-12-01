@@ -329,13 +329,6 @@
     </details>
 
   <details>
-      <summary class="groupTitle">Share / link</summary>
-      <div class="controls">
-        <button id="copyUrlButton" type="button">Copy URL for this setup</button>
-        <span class="value" id="copyUrlStatus"></span>
-      </div>
-    </details>
-  <details>
       <summary class="groupTitle">Screen Saver Drift (setupmode only)</summary>
       <div class="controls">
         <label style="flex-direction:row;align-items:center;gap:8px;">
@@ -353,7 +346,7 @@
         </label>
         <label>
           Edge margin (0–0.2)
-          <input id="driftMarginRelSlider" type="range" min="0.01" max="0.2" step="0.001" />
+          <input id="driftMarginRelSlider" type="range" min="0" max="0.2" step="0.001" />
           <span class="value" id="driftMarginRelValue"></span>
         </label>
         <label>
@@ -364,6 +357,14 @@
         <label style="flex-direction:row;align-items:center;gap:8px;">
           <button id="driftResetButton" type="button">Randomize drift</button>
         </label>
+      </div>
+    </details>
+    
+    <details>
+      <summary class="groupTitle">Share / link</summary>
+      <div class="controls">
+        <button id="copyUrlButton" type="button">Copy URL for this setup</button>
+        <span class="value" id="copyUrlStatus"></span>
       </div>
     </details>
   </div>
@@ -484,9 +485,9 @@ const DEFAULT_vfdDigitGapRel     = 0.380;   // extra digit spacing multiplier (a
 // Drift / screensaver defaults
 const DEFAULT_driftEnabled       = true;     // enable very slow drift by default
 const DEFAULT_driftSpeedRel      = 0.00002;  // relative to diagonal length per frame
-const DEFAULT_driftMarginRel     = 0.05;     // margin from each canvas edge (fraction of min dimension)
+const DEFAULT_driftMarginRel     = 0.00;     // margin from each canvas edge (fraction of min dimension)
 const DEFAULT_driftSetupMultiplier = 120;    // speed multiplier when in setupmode for visibility
-const DEFAULT_driftAngleDeg       = 45;      // default drift direction in degrees (45° diagonal)
+const DEFAULT_driftAngleDeg       = 60;      // default drift direction in degrees (60° diagonal)
 
 // Live values (start at defaults)
 let outerRel            = DEFAULT_outerRel;
