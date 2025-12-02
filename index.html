@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8">
+  <title>Svømmeprogram – Storskjerm</title>
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: #000;
+      font-family: Arial, sans-serif;
+    }
+
+    .container {
+      display: flex;
+      height: 100vh;
+      width: 100vw;
+    }
+
+    .panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: #111;
+    }
+
+    .panel.left {
+      border-right: 2px solid #222;
+    }
+
+    .panel-title {
+      padding: 10px 14px;
+      background: #111;
+      color: #ccc;
+      border-bottom: 2px solid #222;
+      font-size: 18px;
+    }
+
+    .panel-content {
+      flex: 1;
+    }
+
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+
+    <!-- VENSTRE PANEL – klokke -->
+    <div class="panel left">
+      <!-- <div class="panel-title">Klokke</div> -->
+      <div class="panel-content">
+        <iframe src="https://arildj78.github.io/PaceClock/clock.html?outerRel=0.870&logoSizeRel=0.161&logoOffsetXRel=0.009&showLogo=1&driftSpeedRel=0.0000086"></iframe>
+      </div>
+    </div>
+
+    <!-- HØYRE PANEL – Google Slides -->
+    <div class="panel right">
+      <!-- <div class="panel-title">Dagens svømmeprogram</div>-->
+      <div class="panel-content">
+        <iframe 
+          src="https://docs.google.com/presentation/d/e/2PACX-1vR9rw5O7VlR2dSawLX5u_bdP5rRjwABJPRcVxj21oiDYmEHKBuqdn-BRjwya7RE9k3bWTGVWt1Qaa2V/pubembed?start=false&loop=false&delayms=3000&rm=minimal"
+          allowfullscreen="true"
+          mozallowfullscreen="true"
+          webkitallowfullscreen="true">
+        </iframe>
+      </div>
+    </div>
+
+  </div>
+
+</body>
+</html>
