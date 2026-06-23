@@ -15,12 +15,12 @@
     }
     body {
       margin:0;
-      background:black;
+      background:rgb(0, 0, 0);
       display:flex;
       justify-content:flex-start;
       align-items:stretch;
       height:100vh;
-      color:white;
+      color:rgb(255, 255, 255);
       font-family: 'BFont', Arial, sans-serif;
       gap:24px;
     }
@@ -44,7 +44,7 @@
       box-sizing:border-box;
     }
     #clock {
-      background:black;
+      background:rgb(0, 0, 0);
       display:block;
     }
     .groupTitle {
@@ -79,10 +79,52 @@
       font-size:11px;
       opacity:0.8;
     }
+    .modeTabs {
+      display:flex;
+      gap:8px;
+      margin-bottom:10px;
+    }
+    .modeTabButton {
+      flex:1;
+      padding:8px 10px;
+      border:1px solid #666;
+      background:#111;
+      color:white;
+      cursor:pointer;
+      text-transform:uppercase;
+      letter-spacing:0.05em;
+      font-size:12px;
+    }
+    .modeTabButton.active {
+      background:#2a2a2a;
+      border-color:#aaa;
+    }
+    .modeAction {
+      margin-bottom:10px;
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+    .modeAction button {
+      padding:7px 10px;
+      border:1px solid #666;
+      background:#111;
+      color:white;
+      cursor:pointer;
+      text-align:left;
+    }
   </style>
 </head>
 <body>
   <div id="leftPanel">
+    <div class="modeTabs">
+      <button id="swimTabButton" class="modeTabButton" type="button">Swim clock</button>
+      <button id="wallTabButton" class="modeTabButton" type="button">Wall clock</button>
+    </div>
+    <div class="modeAction">
+      <button id="copyFromOtherButton" type="button">Grab values from other interface</button>
+      <span class="value" id="copyFromOtherStatus"></span>
+    </div>
   <details>
       <summary class="groupTitle">Clock geometry</summary>
       <div class="controls" id="clockControls">
@@ -156,6 +198,9 @@
   <details>
       <summary class="groupTitle">Numbers (relative)</summary>
       <div class="controls" id="numberControls">
+        <label style="flex-direction:row;align-items:center;gap:8px;">
+          <input id="showHourNumbersCheckbox" type="checkbox" /> Show hour numbers (1-12)
+        </label>
         <label>
           Number radius (0–1)
           <input id="numberRadiusRelSlider" type="range" min="0" max="1" step="0.01" />
@@ -185,15 +230,93 @@
     </details>
 
     <details>
+      <summary class="groupTitle">Colors & presets</summary>
+      <div class="controls" id="colorControls">
+        <label>
+          Preset
+          <select id="colorPresetSelect">
+            <option value="">Select preset</option>
+          </select>
+        </label>
+        <button id="applyColorPresetButton" type="button">Apply preset</button>
+        <span class="value" id="applyColorPresetStatus"></span>
+        <label>
+          Background color
+          <input id="backgroundColorInput" type="color" value="#000000" />
+          <span class="value" id="backgroundColorValue"></span>
+        </label>
+        <label>
+          Tick color
+          <input id="tickColorInput" type="color" value="#ffffff" />
+          <span class="value" id="tickColorValue"></span>
+        </label>
+        <label>
+          Number color
+          <input id="numberColorInput" type="color" value="#ffffff" />
+          <span class="value" id="numberColorValue"></span>
+        </label>
+        <label>
+          Center color
+          <input id="centerColorInput" type="color" value="#e1cd92" />
+          <span class="value" id="centerColorValue"></span>
+        </label>
+        <div id="swimColorControls">
+          <label>
+            Swim top hand color
+            <input id="swimTopColorInput" type="color" value="#0000ff" />
+            <span class="value" id="swimTopColorValue"></span>
+          </label>
+          <label>
+            Swim right hand color
+            <input id="swimRightColorInput" type="color" value="#ffff00" />
+            <span class="value" id="swimRightColorValue"></span>
+          </label>
+          <label>
+            Swim bottom hand color
+            <input id="swimBottomColorInput" type="color" value="#ff0000" />
+            <span class="value" id="swimBottomColorValue"></span>
+          </label>
+          <label>
+            Swim left hand color
+            <input id="swimLeftColorInput" type="color" value="#008000" />
+            <span class="value" id="swimLeftColorValue"></span>
+          </label>
+          <label>
+            Digital display color
+            <input id="vfdColorInput" type="color" value="#00b7ff" />
+            <span class="value" id="vfdColorVal"></span>
+          </label>
+          <label>
+            Swim minute hand color
+            <input id="minuteColorInput" type="color" value="#888888" />
+            <span class="value" id="minuteColorValue"></span>
+          </label>
+        </div>
+        <div id="wallColorControls">
+          <label>
+            Wall hour color
+            <input id="wallHourColorInput" type="color" value="#f0f0f0" />
+            <span class="value" id="wallHourColorValue"></span>
+          </label>
+          <label>
+            Wall minute color
+            <input id="wallMinuteColorInput" type="color" value="#d0d0d0" />
+            <span class="value" id="wallMinuteColorValue"></span>
+          </label>
+          <label>
+            Wall second color
+            <input id="wallSecondColorInput" type="color" value="#ff3b30" />
+            <span class="value" id="wallSecondColorValue"></span>
+          </label>
+        </div>
+      </div>
+    </details>
+
+    <details>
       <summary class="groupTitle">Digital display</summary>
       <div class="controls" id="vfdControls">
         <label style="flex-direction:row;align-items:center;gap:8px;">
           <input id="showVFDCheckbox" type="checkbox" checked /> Show digital display
-        </label>
-        <label>
-          Color
-          <input id="vfdColorInput" type="color" value="#00b7ff" />
-          <span class="value" id="vfdColorVal"></span>
         </label>
         <label>
           Test pattern
@@ -268,10 +391,41 @@
           <input id="minuteDiamondWidthRelSlider" type="range" min="0" max="0.2" step="0.001" />
           <span class="value" id="minuteDiamondWidthRelValue"></span>
         </label>
+      </div>
+    </details>
+
+    <details>
+      <summary class="groupTitle">Wall hands</summary>
+      <div class="controls" id="wallHandControls">
         <label>
-          Hand color
-          <input id="minuteColorInput" type="color" value="#888888" />
-          <span class="value" id="minuteColorValue"></span>
+          Hour length (0-1)
+          <input id="wallHourLengthRelSlider" type="range" min="0.2" max="1" step="0.001" />
+          <span class="value" id="wallHourLengthRelValue"></span>
+        </label>
+        <label>
+          Hour width (vs radius)
+          <input id="wallHourWidthRelSlider" type="range" min="0.001" max="0.12" step="0.001" />
+          <span class="value" id="wallHourWidthRelValue"></span>
+        </label>
+        <label>
+          Minute length (0-1)
+          <input id="wallMinuteLengthRelSlider" type="range" min="0.2" max="1" step="0.001" />
+          <span class="value" id="wallMinuteLengthRelValue"></span>
+        </label>
+        <label>
+          Minute width (vs radius)
+          <input id="wallMinuteWidthRelSlider" type="range" min="0.001" max="0.08" step="0.001" />
+          <span class="value" id="wallMinuteWidthRelValue"></span>
+        </label>
+        <label>
+          Second length (0-1)
+          <input id="wallSecondLengthRelSlider" type="range" min="0.2" max="1" step="0.001" />
+          <span class="value" id="wallSecondLengthRelValue"></span>
+        </label>
+        <label>
+          Second width (vs radius)
+          <input id="wallSecondWidthRelSlider" type="range" min="0.001" max="0.04" step="0.001" />
+          <span class="value" id="wallSecondWidthRelValue"></span>
         </label>
       </div>
     </details>
@@ -373,6 +527,7 @@
     <canvas id="clock"></canvas>
   </div>
 
+<script src="./clock-color-presets.js"></script>
 <script>
 // Number offset state: { [number]: {x, y} }
 const numberOffsets = {
@@ -414,6 +569,10 @@ for (const n of [5,10,15,20,25,30,35,40,45,50,55,60]) {
 const canvas = document.getElementById('clock');
 const ctx = canvas.getContext('2d');
 const leftPanel = document.getElementById('leftPanel');
+const swimTabButton = document.getElementById('swimTabButton');
+const wallTabButton = document.getElementById('wallTabButton');
+const copyFromOtherButton = document.getElementById('copyFromOtherButton');
+const copyFromOtherStatus = document.getElementById('copyFromOtherStatus');
 
 // Show setup sliders only when URL contains the token "setupmode"
 const url = window.location.href;
@@ -422,6 +581,9 @@ leftPanel.style.display = showSetupPanel ? 'flex' : 'none';
 
 // Helper: read URL parameters (e.g. ?outerRel=0.9&logoSizeRel=0.05)
 const params = new URLSearchParams(window.location.search);
+const MODE_SWIM = 'swim';
+const MODE_WALL = 'wall';
+let currentMode = (params.get('mode') || MODE_SWIM).toLowerCase() === MODE_WALL ? MODE_WALL : MODE_SWIM;
 
 function paramFloat(name, current) {
   const v = params.get(name);
@@ -439,6 +601,158 @@ function paramBool(name, current) {
   return current;
 }
 
+function cloneNumberOffsets(src) {
+  const out = {};
+  for (const n of [5,10,15,20,25,30,35,40,45,50,55,60]) {
+    const key = String(n);
+    const item = src[key] || src[n] || { x: 0, y: 0 };
+    out[n] = { x: Number(item.x) || 0, y: Number(item.y) || 0 };
+  }
+  return out;
+}
+
+function getCurrentStateSnapshot() {
+  return {
+    outerRel,
+    minorInnerRel,
+    majorInnerRel,
+    minorOuterRel,
+    minorWidthRel,
+    majorWidthRel,
+    numberRadiusRel,
+    numberFontRel,
+    showHourNumbers,
+    backgroundColor,
+    tickColor,
+    numberColor,
+    centerColor,
+    swimTopColor,
+    swimRightColor,
+    swimBottomColor,
+    swimLeftColor,
+    centerCircleRel,
+    shaftWidthRel,
+    tipRel,
+    diamondBaseInsetRel,
+    diamondBackRel,
+    diamondWidthRel,
+    bgScaleRel,
+    logoSizeRel,
+    logoOffsetXRel,
+    logoOffsetYRel,
+    showLogo,
+    runClock,
+    manualAngle,
+    showBg,
+    minuteShaftWidthRel,
+    minuteTipRel,
+    minuteDiamondBaseInsetRel,
+    minuteDiamondBackRel,
+    minuteDiamondWidthRel,
+    minuteColor,
+    showMinute,
+    driftEnabled,
+    driftSpeedRel,
+    driftMarginRel,
+    driftSetupMultiplier,
+    driftAngleDeg,
+    wallHourLengthRel,
+    wallHourWidthRel,
+    wallMinuteLengthRel,
+    wallMinuteWidthRel,
+    wallSecondLengthRel,
+    wallSecondWidthRel,
+    wallHourColor,
+    wallMinuteColor,
+    wallSecondColor,
+    vfdEnabled,
+    vfdColor,
+    vfdScaleRel,
+    vfdYOffsetRel,
+    vfdColonPadding,
+    vfdCornerRel,
+    vfdGlowRel,
+    vfdDigitGapRel,
+    vfdTestMode,
+    numberOffsets: cloneNumberOffsets(numberOffsets)
+  };
+}
+
+function applyStateSnapshot(state) {
+  outerRel = state.outerRel;
+  minorInnerRel = state.minorInnerRel;
+  majorInnerRel = state.majorInnerRel;
+  minorOuterRel = state.minorOuterRel;
+  minorWidthRel = state.minorWidthRel;
+  majorWidthRel = state.majorWidthRel;
+  numberRadiusRel = state.numberRadiusRel;
+  numberFontRel = state.numberFontRel;
+  showHourNumbers = state.showHourNumbers;
+  backgroundColor = state.backgroundColor;
+  tickColor = state.tickColor;
+  numberColor = state.numberColor;
+  centerColor = state.centerColor;
+  swimTopColor = state.swimTopColor;
+  swimRightColor = state.swimRightColor;
+  swimBottomColor = state.swimBottomColor;
+  swimLeftColor = state.swimLeftColor;
+  centerCircleRel = state.centerCircleRel;
+  shaftWidthRel = state.shaftWidthRel;
+  tipRel = state.tipRel;
+  diamondBaseInsetRel = state.diamondBaseInsetRel;
+  diamondBackRel = state.diamondBackRel;
+  diamondWidthRel = state.diamondWidthRel;
+  bgScaleRel = state.bgScaleRel;
+  logoSizeRel = state.logoSizeRel;
+  logoOffsetXRel = state.logoOffsetXRel;
+  logoOffsetYRel = state.logoOffsetYRel;
+  showLogo = state.showLogo;
+  runClock = state.runClock;
+  manualAngle = state.manualAngle;
+  showBg = state.showBg;
+  minuteShaftWidthRel = state.minuteShaftWidthRel;
+  minuteTipRel = state.minuteTipRel;
+  minuteDiamondBaseInsetRel = state.minuteDiamondBaseInsetRel;
+  minuteDiamondBackRel = state.minuteDiamondBackRel;
+  minuteDiamondWidthRel = state.minuteDiamondWidthRel;
+  minuteColor = state.minuteColor;
+  showMinute = state.showMinute;
+  driftEnabled = state.driftEnabled;
+  driftSpeedRel = state.driftSpeedRel;
+  driftMarginRel = state.driftMarginRel;
+  driftSetupMultiplier = state.driftSetupMultiplier;
+  driftAngleDeg = state.driftAngleDeg;
+  wallHourLengthRel = state.wallHourLengthRel;
+  wallHourWidthRel = state.wallHourWidthRel;
+  wallMinuteLengthRel = state.wallMinuteLengthRel;
+  wallMinuteWidthRel = state.wallMinuteWidthRel;
+  wallSecondLengthRel = state.wallSecondLengthRel;
+  wallSecondWidthRel = state.wallSecondWidthRel;
+  wallHourColor = state.wallHourColor;
+  wallMinuteColor = state.wallMinuteColor;
+  wallSecondColor = state.wallSecondColor;
+  vfdEnabled = state.vfdEnabled;
+  vfdColor = state.vfdColor;
+  vfdScaleRel = state.vfdScaleRel;
+  vfdYOffsetRel = state.vfdYOffsetRel;
+  vfdColonPadding = state.vfdColonPadding;
+  vfdCornerRel = state.vfdCornerRel;
+  vfdGlowRel = state.vfdGlowRel;
+  vfdDigitGapRel = state.vfdDigitGapRel;
+  vfdTestMode = state.vfdTestMode;
+
+  const clonedOffsets = cloneNumberOffsets(state.numberOffsets || numberOffsets);
+  for (const n of [5,10,15,20,25,30,35,40,45,50,55,60]) {
+    numberOffsets[n].x = clonedOffsets[n].x;
+    numberOffsets[n].y = clonedOffsets[n].y;
+  }
+}
+
+let modeStates = {
+  [MODE_SWIM]: null,
+  [MODE_WALL]: null
+};
+
 // ===== Relative configuration (all 0–1 where noted) =====
 // Defaults
 const DEFAULT_outerRel            = 0.95;
@@ -449,6 +763,15 @@ const DEFAULT_minorWidthRel       = 0.009;
 const DEFAULT_majorWidthRel       = 0.026;
 const DEFAULT_numberRadiusRel     = 0.63;
 const DEFAULT_numberFontRel       = 0.229;
+const DEFAULT_showHourNumbers     = false;
+const DEFAULT_backgroundColor     = '#000000';
+const DEFAULT_tickColor           = '#ffffff';
+const DEFAULT_numberColor         = '#ffffff';
+const DEFAULT_centerColor         = '#e1cd92';
+const DEFAULT_swimTopColor        = '#0000ff';
+const DEFAULT_swimRightColor      = '#ffff00';
+const DEFAULT_swimBottomColor     = '#ff0000';
+const DEFAULT_swimLeftColor       = '#008000';
 const DEFAULT_centerCircleRel     = 0.038;
 const DEFAULT_shaftWidthRel       = 0.04;
 const DEFAULT_tipRel              = 0.986;
@@ -489,6 +812,34 @@ const DEFAULT_driftMarginRel     = 0.00;     // margin from each canvas edge (fr
 const DEFAULT_driftSetupMultiplier = 120;    // speed multiplier when in setupmode for visibility
 const DEFAULT_driftAngleDeg       = 60;      // default drift direction in degrees (60° diagonal)
 
+// Wall clock hand defaults
+const DEFAULT_wallHourLengthRel   = 0.54;
+const DEFAULT_wallHourWidthRel    = 0.055;
+const DEFAULT_wallMinuteLengthRel = 0.78;
+const DEFAULT_wallMinuteWidthRel  = 0.036;
+const DEFAULT_wallSecondLengthRel = 0.92;
+const DEFAULT_wallSecondWidthRel  = 0.010;
+const DEFAULT_wallHourColor       = '#f0f0f0';
+const DEFAULT_wallMinuteColor     = '#d0d0d0';
+const DEFAULT_wallSecondColor     = '#ff3b30';
+
+// Wall mode specific color defaults
+const WALL_MODE_COLORS = {
+  showHourNumbers: true,
+  tickColor: '#bababa',
+  numberColor: '#bababa',
+  centerColor: '#4ba8c8',
+  swimTopColor: '#2d5a7b',
+  swimRightColor: '#4a8fa8',
+  swimBottomColor: '#1e3f5a',
+  swimLeftColor: '#2d6f8c',
+  vfdColor: '#5dd9f0',
+  minuteColor: '#3a6a85',
+  wallHourColor: '#a8e8f0',
+  wallMinuteColor: '#7dd9e8',
+  wallSecondColor: '#4ba8c8'
+};
+
 // Live values (start at defaults)
 let outerRel            = DEFAULT_outerRel;
 let minorInnerRel       = DEFAULT_minorInnerRel;
@@ -498,6 +849,15 @@ let minorWidthRel       = DEFAULT_minorWidthRel;
 let majorWidthRel       = DEFAULT_majorWidthRel;
 let numberRadiusRel     = DEFAULT_numberRadiusRel;
 let numberFontRel       = DEFAULT_numberFontRel;
+let showHourNumbers     = DEFAULT_showHourNumbers;
+let backgroundColor     = DEFAULT_backgroundColor;
+let tickColor           = DEFAULT_tickColor;
+let numberColor         = DEFAULT_numberColor;
+let centerColor         = DEFAULT_centerColor;
+let swimTopColor        = DEFAULT_swimTopColor;
+let swimRightColor      = DEFAULT_swimRightColor;
+let swimBottomColor     = DEFAULT_swimBottomColor;
+let swimLeftColor       = DEFAULT_swimLeftColor;
 let centerCircleRel     = DEFAULT_centerCircleRel;
 let shaftWidthRel       = DEFAULT_shaftWidthRel;
 let tipRel              = DEFAULT_tipRel;
@@ -529,6 +889,15 @@ let driftOffsetY        = 0;
 let driftVelX           = 0;
 let driftVelY           = 0;
 let driftAngleDeg       = DEFAULT_driftAngleDeg;
+let wallHourLengthRel   = DEFAULT_wallHourLengthRel;
+let wallHourWidthRel    = DEFAULT_wallHourWidthRel;
+let wallMinuteLengthRel = DEFAULT_wallMinuteLengthRel;
+let wallMinuteWidthRel  = DEFAULT_wallMinuteWidthRel;
+let wallSecondLengthRel = DEFAULT_wallSecondLengthRel;
+let wallSecondWidthRel  = DEFAULT_wallSecondWidthRel;
+let wallHourColor       = DEFAULT_wallHourColor;
+let wallMinuteColor     = DEFAULT_wallMinuteColor;
+let wallSecondColor     = DEFAULT_wallSecondColor;
 // VFD live values
 let vfdEnabled          = DEFAULT_vfdEnabled;
 let vfdColor            = DEFAULT_vfdColor;
@@ -549,6 +918,15 @@ minorWidthRel       = paramFloat('minorWidthRel', minorWidthRel);
 majorWidthRel       = paramFloat('majorWidthRel', majorWidthRel);
 numberRadiusRel     = paramFloat('numberRadiusRel', numberRadiusRel);
 numberFontRel       = paramFloat('numberFontRel', numberFontRel);
+showHourNumbers     = paramBool('showHourNumbers', showHourNumbers);
+backgroundColor     = params.get('backgroundColor') || backgroundColor;
+tickColor           = params.get('tickColor') || tickColor;
+numberColor         = params.get('numberColor') || numberColor;
+centerColor         = params.get('centerColor') || centerColor;
+swimTopColor        = params.get('swimTopColor') || swimTopColor;
+swimRightColor      = params.get('swimRightColor') || swimRightColor;
+swimBottomColor     = params.get('swimBottomColor') || swimBottomColor;
+swimLeftColor       = params.get('swimLeftColor') || swimLeftColor;
 centerCircleRel     = paramFloat('centerCircleRel', centerCircleRel);
 shaftWidthRel       = paramFloat('shaftWidthRel', shaftWidthRel);
 tipRel              = paramFloat('tipRel', tipRel);
@@ -587,6 +965,42 @@ driftSpeedRel       = paramFloat('driftSpeedRel', driftSpeedRel);
 driftMarginRel      = paramFloat('driftMarginRel', driftMarginRel);
 driftSetupMultiplier = paramFloat('driftSetupMultiplier', driftSetupMultiplier);
 driftAngleDeg       = paramFloat('driftAngleDeg', driftAngleDeg);
+wallHourLengthRel   = paramFloat('wallHourLengthRel', wallHourLengthRel);
+wallHourWidthRel    = paramFloat('wallHourWidthRel', wallHourWidthRel);
+wallMinuteLengthRel = paramFloat('wallMinuteLengthRel', wallMinuteLengthRel);
+wallMinuteWidthRel  = paramFloat('wallMinuteWidthRel', wallMinuteWidthRel);
+wallSecondLengthRel = paramFloat('wallSecondLengthRel', wallSecondLengthRel);
+wallSecondWidthRel  = paramFloat('wallSecondWidthRel', wallSecondWidthRel);
+wallHourColor       = params.get('wallHourColor') || wallHourColor;
+wallMinuteColor     = params.get('wallMinuteColor') || wallMinuteColor;
+wallSecondColor     = params.get('wallSecondColor') || wallSecondColor;
+
+modeStates[MODE_SWIM] = getCurrentStateSnapshot();
+modeStates[MODE_WALL] = getCurrentStateSnapshot();
+
+// Apply wall-specific color defaults to wall mode snapshot
+for (const [key, value] of Object.entries(WALL_MODE_COLORS)) {
+  if (key === 'showHourNumbers' || key.includes('Color')) {
+    modeStates[MODE_WALL][key] = value;
+  }
+}
+
+// If page loads in wall mode, apply wall defaults to current state
+if (currentMode === MODE_WALL) {
+  showHourNumbers = WALL_MODE_COLORS.showHourNumbers;
+  tickColor = WALL_MODE_COLORS.tickColor;
+  numberColor = WALL_MODE_COLORS.numberColor;
+  centerColor = WALL_MODE_COLORS.centerColor;
+  swimTopColor = WALL_MODE_COLORS.swimTopColor;
+  swimRightColor = WALL_MODE_COLORS.swimRightColor;
+  swimBottomColor = WALL_MODE_COLORS.swimBottomColor;
+  swimLeftColor = WALL_MODE_COLORS.swimLeftColor;
+  vfdColor = WALL_MODE_COLORS.vfdColor;
+  minuteColor = WALL_MODE_COLORS.minuteColor;
+  wallHourColor = WALL_MODE_COLORS.wallHourColor;
+  wallMinuteColor = WALL_MODE_COLORS.wallMinuteColor;
+  wallSecondColor = WALL_MODE_COLORS.wallSecondColor;
+}
 
 // Reference background image for local use (ignored if not found)
 const bgImage = new Image();
@@ -713,7 +1127,9 @@ let lastFaceSettings = '';
 function getFaceSettingsHash() {
   return [
     outerRel, minorInnerRel, majorInnerRel, minorOuterRel,
-    minorWidthRel, majorWidthRel, numberRadiusRel, numberFontRel,
+    minorWidthRel, majorWidthRel, numberRadiusRel, numberFontRel, showHourNumbers,
+    backgroundColor, tickColor, numberColor, centerColor,
+    swimTopColor, swimRightColor, swimBottomColor, swimLeftColor,
     centerCircleRel, shaftWidthRel, tipRel, diamondBaseInsetRel,
     diamondBackRel, diamondWidthRel,
     ...[5,10,15,20,25,30,35,40,45,50,55,60].map(n => `${n}:${numberOffsets[n].x},${numberOffsets[n].y}`)
@@ -972,7 +1388,7 @@ function renderFaceStatic(localCtx, size, r) {
     const outer = (s % 5 === 0) ? outerTickRadius : minorOuterRadius;
     const inner = (s % 5 === 0) ? majorInnerRadius : minorInnerRadius;
     const widthRel = (s % 5 === 0) ? majorWidthRel : minorWidthRel;
-    localCtx.strokeStyle = 'white';
+    localCtx.strokeStyle = tickColor;
     localCtx.lineWidth = clockRadius * widthRel;
     const xOuter = Math.cos(angle) * outer;
     const yOuter = Math.sin(angle) * outer;
@@ -987,7 +1403,7 @@ function renderFaceStatic(localCtx, size, r) {
   // Numbers (requires fontReady)
   if (!fontReady) return;
   const numberRadius = clockRadius * numberRadiusRel;
-  localCtx.fillStyle = 'white';
+  localCtx.fillStyle = numberColor;
   localCtx.font = `${Math.round(clockRadius * numberFontRel)}px 'BFont', Arial, sans-serif`;
   localCtx.textAlign = 'center';
   localCtx.textBaseline = 'middle';
@@ -995,7 +1411,9 @@ function renderFaceStatic(localCtx, size, r) {
     const angle = (Math.PI * 2) * (s / 60) - Math.PI / 2;
     let x = Math.cos(angle) * numberRadius;
     let y = Math.sin(angle) * numberRadius;
-    const label = (s === 0) ? '60' : String(s);
+    const minuteLabel = (s === 0) ? '60' : String(s);
+    const hourLabel = (s === 0) ? '12' : String(s / 5);
+    const label = showHourNumbers ? hourLabel : minuteLabel;
     const offset = numberOffsets[s === 0 ? 60 : s];
     if (offset) {
       x += offset.x * r;
@@ -1137,6 +1555,45 @@ function drawMinuteHand(angle, color, r) {
   ctx.fill();
 }
 
+function drawRoundedWallHand(angle, color, r, lengthRel, widthRel) {
+  const nx = Math.cos(angle);
+  const ny = Math.sin(angle);
+  const tipRadius = r * lengthRel;
+
+  ctx.strokeStyle = color;
+  ctx.lineWidth = r * widthRel;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.lineTo(nx * tipRadius, ny * tipRadius);
+  ctx.stroke();
+}
+
+function drawRectWallHand(angle, color, r, lengthRel, widthRel) {
+  const nx = Math.cos(angle);
+  const ny = Math.sin(angle);
+  const px = -ny;
+  const py = nx;
+  const tipRadius = r * lengthRel;
+  const halfWidth = (r * widthRel) / 2;
+
+  const ax = px * halfWidth;
+  const ay = py * halfWidth;
+  const bx = -px * halfWidth;
+  const by = -py * halfWidth;
+  const tx = nx * tipRadius;
+  const ty = ny * tipRadius;
+
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(ax, ay);
+  ctx.lineTo(tx + ax, ty + ay);
+  ctx.lineTo(tx + bx, ty + by);
+  ctx.lineTo(bx, by);
+  ctx.closePath();
+  ctx.fill();
+}
+
 // Draw either the rotating logo (if available) or the static center circle
 function drawCenterElement(r, baseAngle) {
   const clockRadius = r;
@@ -1155,7 +1612,7 @@ function drawCenterElement(r, baseAngle) {
     ctx.drawImage(centerLogoImage, -logoRadius, -logoRadius, size, size);
     ctx.restore();
   } else {
-    ctx.fillStyle = '#E1CD92';
+    ctx.fillStyle = centerColor;
     ctx.beginPath();
     ctx.arc(0, 0, centerRadius, 0, Math.PI * 2);
     ctx.closePath();
@@ -1180,7 +1637,9 @@ function drawClock() {
     renderFaceStatic(ctx, size, r);
   }
   // VFD is separate cached layer
-  updateAndBlitVFD(ctx, size, r);
+  if (currentMode === MODE_SWIM) {
+    updateAndBlitVFD(ctx, size, r);
+  }
 
   let baseAngle;
   if (runClock) {
@@ -1190,26 +1649,50 @@ function drawClock() {
   } else {
     baseAngle = (Math.PI * 2) * manualAngle - Math.PI / 2;
   }
-  // Minute hand (draw underneath the colored hands)
-  let minuteAngle;
-  if (runClock) {
-    const tmin = new Date();
-    const mins = tmin.getMinutes() + tmin.getSeconds() / 60 + tmin.getMilliseconds() / 60000;
-    minuteAngle = (Math.PI * 2) * (mins / 60) - Math.PI / 2;
+  if (currentMode === MODE_WALL) {
+    let wallSecondAngle;
+    let wallMinuteAngle;
+    let wallHourAngle;
+    if (runClock) {
+      const now = new Date();
+      const sec = now.getSeconds() + now.getMilliseconds() / 1000;
+      const mins = now.getMinutes() + sec / 60;
+      const hours = (now.getHours() % 12) + mins / 60;
+      wallSecondAngle = (Math.PI * 2) * (sec / 60) - Math.PI / 2;
+      wallMinuteAngle = (Math.PI * 2) * (mins / 60) - Math.PI / 2;
+      wallHourAngle = (Math.PI * 2) * (hours / 12) - Math.PI / 2;
+    } else {
+      wallSecondAngle = (Math.PI * 2) * manualAngle - Math.PI / 2;
+      wallMinuteAngle = wallSecondAngle;
+      wallHourAngle = wallSecondAngle;
+    }
+
+    drawRoundedWallHand(wallHourAngle, wallHourColor, r, wallHourLengthRel, wallHourWidthRel);
+    drawRoundedWallHand(wallMinuteAngle, wallMinuteColor, r, wallMinuteLengthRel, wallMinuteWidthRel);
+    drawRectWallHand(wallSecondAngle, wallSecondColor, r, wallSecondLengthRel, wallSecondWidthRel);
+    drawCenterElement(r, wallSecondAngle);
   } else {
-    minuteAngle = (Math.PI * 2) * manualAngle - Math.PI / 2;
-  }
-  if (showMinute) {
-    drawMinuteHand(minuteAngle, minuteColor, r);
-  }
+    // Minute hand (draw underneath the colored hands)
+    let minuteAngle;
+    if (runClock) {
+      const tmin = new Date();
+      const mins = tmin.getMinutes() + tmin.getSeconds() / 60 + tmin.getMilliseconds() / 60000;
+      minuteAngle = (Math.PI * 2) * (mins / 60) - Math.PI / 2;
+    } else {
+      minuteAngle = (Math.PI * 2) * manualAngle - Math.PI / 2;
+    }
+    if (showMinute) {
+      drawMinuteHand(minuteAngle, minuteColor, r);
+    }
 
-  drawDiamondHand(baseAngle,                   'blue',  r);    // up
-  drawDiamondHand(baseAngle + Math.PI / 2,     'yellow',r);    // right
-  drawDiamondHand(baseAngle + Math.PI,         'red',   r);    // down
-  drawDiamondHand(baseAngle + 3 * Math.PI / 2, 'green', r);    // left
+      drawDiamondHand(baseAngle,                   swimTopColor,    r);
+      drawDiamondHand(baseAngle + Math.PI / 2,     swimRightColor,  r);
+      drawDiamondHand(baseAngle + Math.PI,         swimBottomColor, r);
+      drawDiamondHand(baseAngle + 3 * Math.PI / 2, swimLeftColor,   r);
 
-  // Center element on top of all hands (logo or circle)
-  drawCenterElement(r, baseAngle);
+    // Center element on top of all hands (logo or circle)
+    drawCenterElement(r, baseAngle);
+  }
 
   ctx.restore();
 }
@@ -1265,6 +1748,26 @@ const numberRadiusRelSlider   = document.getElementById('numberRadiusRelSlider')
 const numberRadiusRelValue    = document.getElementById('numberRadiusRelValue');
 const numberFontRelSlider     = document.getElementById('numberFontRelSlider');
 const numberFontRelValue      = document.getElementById('numberFontRelValue');
+const showHourNumbersCheckbox = document.getElementById('showHourNumbersCheckbox');
+const colorPresetSelect       = document.getElementById('colorPresetSelect');
+const applyColorPresetButton  = document.getElementById('applyColorPresetButton');
+const applyColorPresetStatus  = document.getElementById('applyColorPresetStatus');
+const backgroundColorInput    = document.getElementById('backgroundColorInput');
+const backgroundColorValue    = document.getElementById('backgroundColorValue');
+const tickColorInput          = document.getElementById('tickColorInput');
+const tickColorValue          = document.getElementById('tickColorValue');
+const numberColorInput        = document.getElementById('numberColorInput');
+const numberColorValue        = document.getElementById('numberColorValue');
+const centerColorInput        = document.getElementById('centerColorInput');
+const centerColorValue        = document.getElementById('centerColorValue');
+const swimTopColorInput       = document.getElementById('swimTopColorInput');
+const swimTopColorValue       = document.getElementById('swimTopColorValue');
+const swimRightColorInput     = document.getElementById('swimRightColorInput');
+const swimRightColorValue     = document.getElementById('swimRightColorValue');
+const swimBottomColorInput    = document.getElementById('swimBottomColorInput');
+const swimBottomColorValue    = document.getElementById('swimBottomColorValue');
+const swimLeftColorInput      = document.getElementById('swimLeftColorInput');
+const swimLeftColorValue      = document.getElementById('swimLeftColorValue');
 const minuteShaftWidthRelSlider = document.getElementById('minuteShaftWidthRelSlider');
 const minuteShaftWidthRelValue  = document.getElementById('minuteShaftWidthRelValue');
 const minuteTipRelSlider       = document.getElementById('minuteTipRelSlider');
@@ -1278,6 +1781,24 @@ const minuteDiamondWidthRelValue  = document.getElementById('minuteDiamondWidthR
 const minuteColorInput         = document.getElementById('minuteColorInput');
 const minuteColorValue         = document.getElementById('minuteColorValue');
 const showMinuteCheckbox       = document.getElementById('showMinuteCheckbox');
+const wallHourLengthRelSlider  = document.getElementById('wallHourLengthRelSlider');
+const wallHourLengthRelValue   = document.getElementById('wallHourLengthRelValue');
+const wallHourWidthRelSlider   = document.getElementById('wallHourWidthRelSlider');
+const wallHourWidthRelValue    = document.getElementById('wallHourWidthRelValue');
+const wallMinuteLengthRelSlider= document.getElementById('wallMinuteLengthRelSlider');
+const wallMinuteLengthRelValue = document.getElementById('wallMinuteLengthRelValue');
+const wallMinuteWidthRelSlider = document.getElementById('wallMinuteWidthRelSlider');
+const wallMinuteWidthRelValue  = document.getElementById('wallMinuteWidthRelValue');
+const wallSecondLengthRelSlider= document.getElementById('wallSecondLengthRelSlider');
+const wallSecondLengthRelValue = document.getElementById('wallSecondLengthRelValue');
+const wallSecondWidthRelSlider = document.getElementById('wallSecondWidthRelSlider');
+const wallSecondWidthRelValue  = document.getElementById('wallSecondWidthRelValue');
+const wallHourColorInput       = document.getElementById('wallHourColorInput');
+const wallHourColorValue       = document.getElementById('wallHourColorValue');
+const wallMinuteColorInput     = document.getElementById('wallMinuteColorInput');
+const wallMinuteColorValue     = document.getElementById('wallMinuteColorValue');
+const wallSecondColorInput     = document.getElementById('wallSecondColorInput');
+const wallSecondColorValue     = document.getElementById('wallSecondColorValue');
 
 // VFD control elements
 const showVFDCheckbox          = document.getElementById('showVFDCheckbox');
@@ -1314,6 +1835,40 @@ const logoOffsetYRelValue     = document.getElementById('logoOffsetYRelValue');
 const showBgCheckbox          = document.getElementById('showBgCheckbox');
 const copyUrlButton           = document.getElementById('copyUrlButton');
 const copyUrlStatus           = document.getElementById('copyUrlStatus');
+const swimModeDetails = [
+  document.getElementById('handControls')?.closest('details'),
+  document.getElementById('vfdControls')?.closest('details'),
+  document.getElementById('minuteControls')?.closest('details')
+].filter(Boolean);
+const wallModeDetails = [
+  document.getElementById('wallHandControls')?.closest('details')
+].filter(Boolean);
+const swimColorControls = document.getElementById('swimColorControls');
+const wallColorControls = document.getElementById('wallColorControls');
+const fallbackColorPresets = [
+  {
+    id: 'original-colors',
+    name: 'Original colors',
+    colors: {
+      backgroundColor: DEFAULT_backgroundColor,
+      tickColor: DEFAULT_tickColor,
+      numberColor: DEFAULT_numberColor,
+      centerColor: DEFAULT_centerColor,
+      swimTopColor: DEFAULT_swimTopColor,
+      swimRightColor: DEFAULT_swimRightColor,
+      swimBottomColor: DEFAULT_swimBottomColor,
+      swimLeftColor: DEFAULT_swimLeftColor,
+      vfdColor: DEFAULT_vfdColor,
+      minuteColor: DEFAULT_minuteColor,
+      wallHourColor: DEFAULT_wallHourColor,
+      wallMinuteColor: DEFAULT_wallMinuteColor,
+      wallSecondColor: DEFAULT_wallSecondColor
+    }
+  }
+];
+const colorPresets = Array.isArray(window.CLOCK_COLOR_PRESETS) && window.CLOCK_COLOR_PRESETS.length > 0
+  ? window.CLOCK_COLOR_PRESETS
+  : fallbackColorPresets;
 // Drift controls (only shown if setupmode, but we still query safely)
 const driftEnabledCheckbox    = document.getElementById('driftEnabledCheckbox');
 const driftSpeedRelSlider     = document.getElementById('driftSpeedRelSlider');
@@ -1325,6 +1880,41 @@ const driftSetupMultiplierValue  = document.getElementById('driftSetupMultiplier
 const driftResetButton        = document.getElementById('driftResetButton');
 const driftAngleDegSlider     = document.getElementById('driftAngleDegSlider');
 const driftAngleDegValue      = document.getElementById('driftAngleDegValue');
+
+function syncBackgroundStyles() {
+  document.body.style.background = backgroundColor;
+  canvas.style.background = backgroundColor;
+}
+
+function populateColorPresetSelect() {
+  for (const preset of colorPresets) {
+    const option = document.createElement('option');
+    option.value = preset.id;
+    option.textContent = preset.name;
+    colorPresetSelect.appendChild(option);
+  }
+}
+
+function applyColorPreset(presetId) {
+  const preset = colorPresets.find(item => item.id === presetId);
+  if (!preset || !preset.colors) return false;
+  const colors = preset.colors;
+  backgroundColor = colors.backgroundColor || backgroundColor;
+  tickColor = colors.tickColor || tickColor;
+  numberColor = colors.numberColor || numberColor;
+  centerColor = colors.centerColor || centerColor;
+  swimTopColor = colors.swimTopColor || swimTopColor;
+  swimRightColor = colors.swimRightColor || swimRightColor;
+  swimBottomColor = colors.swimBottomColor || swimBottomColor;
+  swimLeftColor = colors.swimLeftColor || swimLeftColor;
+  vfdColor = colors.vfdColor || vfdColor;
+  minuteColor = colors.minuteColor || minuteColor;
+  wallHourColor = colors.wallHourColor || wallHourColor;
+  wallMinuteColor = colors.wallMinuteColor || wallMinuteColor;
+  wallSecondColor = colors.wallSecondColor || wallSecondColor;
+  syncControls();
+  return true;
+}
 
 function syncControls() {
   outerRelSlider.value          = outerRel;
@@ -1368,6 +1958,23 @@ function syncControls() {
 
   numberFontRelSlider.value     = numberFontRel;
   numberFontRelValue.textContent = numberFontRel.toFixed(3);
+  showHourNumbersCheckbox.checked = showHourNumbers;
+  backgroundColorInput.value    = backgroundColor;
+  backgroundColorValue.textContent = backgroundColor;
+  tickColorInput.value          = tickColor;
+  tickColorValue.textContent    = tickColor;
+  numberColorInput.value        = numberColor;
+  numberColorValue.textContent  = numberColor;
+  centerColorInput.value        = centerColor;
+  centerColorValue.textContent  = centerColor;
+  swimTopColorInput.value       = swimTopColor;
+  swimTopColorValue.textContent = swimTopColor;
+  swimRightColorInput.value       = swimRightColor;
+  swimRightColorValue.textContent = swimRightColor;
+  swimBottomColorInput.value       = swimBottomColor;
+  swimBottomColorValue.textContent = swimBottomColor;
+  swimLeftColorInput.value       = swimLeftColor;
+  swimLeftColorValue.textContent = swimLeftColor;
 
   bgScaleRelSlider.value        = bgScaleRel;
   bgScaleRelValue.textContent   = bgScaleRel.toFixed(3);
@@ -1386,6 +1993,25 @@ function syncControls() {
   minuteDiamondWidthRelValue.textContent = minuteDiamondWidthRel.toFixed(3);
   minuteColorInput.value        = minuteColor;
   minuteColorValue.textContent  = minuteColor;
+
+  wallHourLengthRelSlider.value = wallHourLengthRel;
+  wallHourLengthRelValue.textContent = wallHourLengthRel.toFixed(3);
+  wallHourWidthRelSlider.value = wallHourWidthRel;
+  wallHourWidthRelValue.textContent = wallHourWidthRel.toFixed(3);
+  wallMinuteLengthRelSlider.value = wallMinuteLengthRel;
+  wallMinuteLengthRelValue.textContent = wallMinuteLengthRel.toFixed(3);
+  wallMinuteWidthRelSlider.value = wallMinuteWidthRel;
+  wallMinuteWidthRelValue.textContent = wallMinuteWidthRel.toFixed(3);
+  wallSecondLengthRelSlider.value = wallSecondLengthRel;
+  wallSecondLengthRelValue.textContent = wallSecondLengthRel.toFixed(3);
+  wallSecondWidthRelSlider.value = wallSecondWidthRel;
+  wallSecondWidthRelValue.textContent = wallSecondWidthRel.toFixed(3);
+  wallHourColorInput.value = wallHourColor;
+  wallHourColorValue.textContent = wallHourColor;
+  wallMinuteColorInput.value = wallMinuteColor;
+  wallMinuteColorValue.textContent = wallMinuteColor;
+  wallSecondColorInput.value = wallSecondColor;
+  wallSecondColorValue.textContent = wallSecondColor;
 
   // VFD controls
   showVFDCheckbox.checked      = vfdEnabled;
@@ -1441,7 +2067,84 @@ function syncControls() {
       driftSetupMultiplierValue.textContent = driftSetupMultiplier.toFixed(0);
     }
   }
+  syncBackgroundStyles();
+
+  for (const n of [5,10,15,20,25,30,35,40,45,50,55,60]) {
+    const xSlider = document.getElementById(`num${n}x`);
+    const ySlider = document.getElementById(`num${n}y`);
+    const xVal = document.getElementById(`num${n}xVal`);
+    const yVal = document.getElementById(`num${n}yVal`);
+    if (xSlider && ySlider && xVal && yVal) {
+      xSlider.value = String(numberOffsets[n].x);
+      ySlider.value = String(numberOffsets[n].y);
+      xVal.textContent = numberOffsets[n].x.toFixed(3);
+      yVal.textContent = numberOffsets[n].y.toFixed(3);
+    }
+  }
 }
+
+function saveCurrentModeState() {
+  modeStates[currentMode] = getCurrentStateSnapshot();
+}
+
+function setModeSectionVisibility() {
+  const isSwim = currentMode === MODE_SWIM;
+  swimTabButton.classList.toggle('active', isSwim);
+  wallTabButton.classList.toggle('active', !isSwim);
+  for (const el of swimModeDetails) {
+    el.style.display = isSwim ? '' : 'none';
+  }
+  for (const el of wallModeDetails) {
+    el.style.display = isSwim ? 'none' : '';
+  }
+  if (swimColorControls) swimColorControls.style.display = isSwim ? '' : 'none';
+  if (wallColorControls) wallColorControls.style.display = isSwim ? 'none' : '';
+}
+
+function switchMode(nextMode) {
+  if (nextMode === currentMode) return;
+  saveCurrentModeState();
+  currentMode = nextMode;
+  if (modeStates[currentMode]) {
+    applyStateSnapshot(modeStates[currentMode]);
+  }
+  syncControls();
+  setModeSectionVisibility();
+}
+
+swimTabButton.addEventListener('click', () => {
+  switchMode(MODE_SWIM);
+});
+
+wallTabButton.addEventListener('click', () => {
+  switchMode(MODE_WALL);
+});
+
+populateColorPresetSelect();
+
+copyFromOtherButton.addEventListener('click', () => {
+  saveCurrentModeState();
+  const otherMode = currentMode === MODE_SWIM ? MODE_WALL : MODE_SWIM;
+  const source = modeStates[otherMode] ? JSON.parse(JSON.stringify(modeStates[otherMode])) : null;
+  if (!source) return;
+  modeStates[currentMode] = source;
+  applyStateSnapshot(modeStates[currentMode]);
+  syncControls();
+  copyFromOtherStatus.textContent = `Copied from ${otherMode}`;
+  setTimeout(() => {
+    copyFromOtherStatus.textContent = '';
+  }, 1800);
+});
+
+applyColorPresetButton.addEventListener('click', () => {
+  if (!colorPresetSelect.value) return;
+  if (applyColorPreset(colorPresetSelect.value)) {
+    applyColorPresetStatus.textContent = 'Preset applied';
+    setTimeout(() => {
+      applyColorPresetStatus.textContent = '';
+    }, 1800);
+  }
+});
 
 outerRelSlider.addEventListener('input', () => {
   outerRel = parseFloat(outerRelSlider.value);
@@ -1506,6 +2209,51 @@ centerCircleRelSlider.addEventListener('input', () => {
 numberRadiusRelSlider.addEventListener('input', () => {
   numberRadiusRel = parseFloat(numberRadiusRelSlider.value);
   numberRadiusRelValue.textContent = numberRadiusRel.toFixed(3);
+});
+
+showHourNumbersCheckbox.addEventListener('change', () => {
+  showHourNumbers = showHourNumbersCheckbox.checked;
+});
+
+backgroundColorInput.addEventListener('input', () => {
+  backgroundColor = backgroundColorInput.value;
+  backgroundColorValue.textContent = backgroundColor;
+  syncBackgroundStyles();
+});
+
+tickColorInput.addEventListener('input', () => {
+  tickColor = tickColorInput.value;
+  tickColorValue.textContent = tickColor;
+});
+
+numberColorInput.addEventListener('input', () => {
+  numberColor = numberColorInput.value;
+  numberColorValue.textContent = numberColor;
+});
+
+centerColorInput.addEventListener('input', () => {
+  centerColor = centerColorInput.value;
+  centerColorValue.textContent = centerColor;
+});
+
+swimTopColorInput.addEventListener('input', () => {
+  swimTopColor = swimTopColorInput.value;
+  swimTopColorValue.textContent = swimTopColor;
+});
+
+swimRightColorInput.addEventListener('input', () => {
+  swimRightColor = swimRightColorInput.value;
+  swimRightColorValue.textContent = swimRightColor;
+});
+
+swimBottomColorInput.addEventListener('input', () => {
+  swimBottomColor = swimBottomColorInput.value;
+  swimBottomColorValue.textContent = swimBottomColor;
+});
+
+swimLeftColorInput.addEventListener('input', () => {
+  swimLeftColor = swimLeftColorInput.value;
+  swimLeftColorValue.textContent = swimLeftColor;
 });
 
 minuteShaftWidthRelSlider.addEventListener('input', () => {
@@ -1585,6 +2333,51 @@ minuteColorInput.addEventListener('input', () => {
 
 showMinuteCheckbox.addEventListener('change', () => {
   showMinute = showMinuteCheckbox.checked;
+});
+
+wallHourLengthRelSlider.addEventListener('input', () => {
+  wallHourLengthRel = parseFloat(wallHourLengthRelSlider.value);
+  wallHourLengthRelValue.textContent = wallHourLengthRel.toFixed(3);
+});
+
+wallHourWidthRelSlider.addEventListener('input', () => {
+  wallHourWidthRel = parseFloat(wallHourWidthRelSlider.value);
+  wallHourWidthRelValue.textContent = wallHourWidthRel.toFixed(3);
+});
+
+wallMinuteLengthRelSlider.addEventListener('input', () => {
+  wallMinuteLengthRel = parseFloat(wallMinuteLengthRelSlider.value);
+  wallMinuteLengthRelValue.textContent = wallMinuteLengthRel.toFixed(3);
+});
+
+wallMinuteWidthRelSlider.addEventListener('input', () => {
+  wallMinuteWidthRel = parseFloat(wallMinuteWidthRelSlider.value);
+  wallMinuteWidthRelValue.textContent = wallMinuteWidthRel.toFixed(3);
+});
+
+wallSecondLengthRelSlider.addEventListener('input', () => {
+  wallSecondLengthRel = parseFloat(wallSecondLengthRelSlider.value);
+  wallSecondLengthRelValue.textContent = wallSecondLengthRel.toFixed(3);
+});
+
+wallSecondWidthRelSlider.addEventListener('input', () => {
+  wallSecondWidthRel = parseFloat(wallSecondWidthRelSlider.value);
+  wallSecondWidthRelValue.textContent = wallSecondWidthRel.toFixed(3);
+});
+
+wallHourColorInput.addEventListener('input', () => {
+  wallHourColor = wallHourColorInput.value;
+  wallHourColorValue.textContent = wallHourColor;
+});
+
+wallMinuteColorInput.addEventListener('input', () => {
+  wallMinuteColor = wallMinuteColorInput.value;
+  wallMinuteColorValue.textContent = wallMinuteColor;
+});
+
+wallSecondColorInput.addEventListener('input', () => {
+  wallSecondColor = wallSecondColorInput.value;
+  wallSecondColorValue.textContent = wallSecondColor;
 });
 
 numberFontRelSlider.addEventListener('input', () => {
@@ -1731,6 +2524,10 @@ function buildConfigUrl() {
     }
   };
 
+  if (currentMode !== MODE_SWIM) {
+    qs.set('mode', currentMode);
+  }
+
   addFloat('outerRel',            outerRel,            DEFAULT_outerRel);
   addFloat('minorInnerRel',       minorInnerRel,       DEFAULT_minorInnerRel);
   addFloat('majorInnerRel',       majorInnerRel,       DEFAULT_majorInnerRel);
@@ -1739,6 +2536,15 @@ function buildConfigUrl() {
   addFloat('majorWidthRel',       majorWidthRel,       DEFAULT_majorWidthRel);
   addFloat('numberRadiusRel',     numberRadiusRel,     DEFAULT_numberRadiusRel);
   addFloat('numberFontRel',       numberFontRel,       DEFAULT_numberFontRel);
+  addBool('showHourNumbers',      showHourNumbers,     DEFAULT_showHourNumbers);
+  if (backgroundColor !== DEFAULT_backgroundColor) qs.set('backgroundColor', backgroundColor);
+  if (tickColor !== DEFAULT_tickColor) qs.set('tickColor', tickColor);
+  if (numberColor !== DEFAULT_numberColor) qs.set('numberColor', numberColor);
+  if (centerColor !== DEFAULT_centerColor) qs.set('centerColor', centerColor);
+  if (swimTopColor !== DEFAULT_swimTopColor) qs.set('swimTopColor', swimTopColor);
+  if (swimRightColor !== DEFAULT_swimRightColor) qs.set('swimRightColor', swimRightColor);
+  if (swimBottomColor !== DEFAULT_swimBottomColor) qs.set('swimBottomColor', swimBottomColor);
+  if (swimLeftColor !== DEFAULT_swimLeftColor) qs.set('swimLeftColor', swimLeftColor);
   addFloat('centerCircleRel',     centerCircleRel,     DEFAULT_centerCircleRel);
   addFloat('shaftWidthRel',       shaftWidthRel,       DEFAULT_shaftWidthRel);
   addFloat('tipRel',              tipRel,              DEFAULT_tipRel);
@@ -1782,11 +2588,22 @@ function buildConfigUrl() {
   addFloat('driftAngleDeg', driftAngleDeg, DEFAULT_driftAngleDeg, 0);
   // Omit driftSetupMultiplier from shared URLs (setup-only control)
 
+  addFloat('wallHourLengthRel', wallHourLengthRel, DEFAULT_wallHourLengthRel);
+  addFloat('wallHourWidthRel', wallHourWidthRel, DEFAULT_wallHourWidthRel);
+  addFloat('wallMinuteLengthRel', wallMinuteLengthRel, DEFAULT_wallMinuteLengthRel);
+  addFloat('wallMinuteWidthRel', wallMinuteWidthRel, DEFAULT_wallMinuteWidthRel);
+  addFloat('wallSecondLengthRel', wallSecondLengthRel, DEFAULT_wallSecondLengthRel);
+  addFloat('wallSecondWidthRel', wallSecondWidthRel, DEFAULT_wallSecondWidthRel);
+  if (wallHourColor !== DEFAULT_wallHourColor) qs.set('wallHourColor', wallHourColor);
+  if (wallMinuteColor !== DEFAULT_wallMinuteColor) qs.set('wallMinuteColor', wallMinuteColor);
+  if (wallSecondColor !== DEFAULT_wallSecondColor) qs.set('wallSecondColor', wallSecondColor);
+
   const query = qs.toString();
   return query ? `${base}?${query}` : base;
 }
 
 copyUrlButton.addEventListener('click', () => {
+  saveCurrentModeState();
   const link = buildConfigUrl();
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(link)
@@ -1805,6 +2622,7 @@ copyUrlButton.addEventListener('click', () => {
 });
 
 syncControls();
+setModeSectionVisibility();
 
 // Re-run layout on resize to honour outerRel
 window.addEventListener('resize', () => {
