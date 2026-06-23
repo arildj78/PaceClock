@@ -985,19 +985,7 @@ for (const [key, value] of Object.entries(WALL_MODE_COLORS)) {
 
 // If page loads in wall mode, apply wall defaults to current state
 if (currentMode === MODE_WALL) {
-  showHourNumbers = WALL_MODE_COLORS.showHourNumbers;
-  tickColor = WALL_MODE_COLORS.tickColor;
-  numberColor = WALL_MODE_COLORS.numberColor;
-  centerColor = WALL_MODE_COLORS.centerColor;
-  swimTopColor = WALL_MODE_COLORS.swimTopColor;
-  swimRightColor = WALL_MODE_COLORS.swimRightColor;
-  swimBottomColor = WALL_MODE_COLORS.swimBottomColor;
-  swimLeftColor = WALL_MODE_COLORS.swimLeftColor;
-  vfdColor = WALL_MODE_COLORS.vfdColor;
-  minuteColor = WALL_MODE_COLORS.minuteColor;
-  wallHourColor = WALL_MODE_COLORS.wallHourColor;
-  wallMinuteColor = WALL_MODE_COLORS.wallMinuteColor;
-  wallSecondColor = WALL_MODE_COLORS.wallSecondColor;
+  applyStateSnapshot(modeStates[MODE_WALL]);
 }
 
 // Reference background image for local use (ignored if not found)
@@ -2505,6 +2493,11 @@ if (driftResetButton) {
 function buildConfigUrl() {
   const base = window.location.origin + window.location.pathname;
   const qs = new URLSearchParams();
+  const modeDefault = (name, fallback) => (
+    currentMode === MODE_WALL && Object.prototype.hasOwnProperty.call(WALL_MODE_COLORS, name)
+      ? WALL_MODE_COLORS[name]
+      : fallback
+  );
 
   // Do NOT include setupmode in generated production URLs
 // (setupmode is only for design-time editing)
@@ -2534,15 +2527,15 @@ function buildConfigUrl() {
   addFloat('majorWidthRel',       majorWidthRel,       DEFAULT_majorWidthRel);
   addFloat('numberRadiusRel',     numberRadiusRel,     DEFAULT_numberRadiusRel);
   addFloat('numberFontRel',       numberFontRel,       DEFAULT_numberFontRel);
-  addBool('showHourNumbers',      showHourNumbers,     DEFAULT_showHourNumbers);
+  addBool('showHourNumbers',      showHourNumbers,     modeDefault('showHourNumbers', DEFAULT_showHourNumbers));
   if (backgroundColor !== DEFAULT_backgroundColor) qs.set('backgroundColor', backgroundColor);
   if (tickColor !== DEFAULT_tickColor) qs.set('tickColor', tickColor);
   if (numberColor !== DEFAULT_numberColor) qs.set('numberColor', numberColor);
-  if (centerColor !== DEFAULT_centerColor) qs.set('centerColor', centerColor);
-  if (swimTopColor !== DEFAULT_swimTopColor) qs.set('swimTopColor', swimTopColor);
-  if (swimRightColor !== DEFAULT_swimRightColor) qs.set('swimRightColor', swimRightColor);
-  if (swimBottomColor !== DEFAULT_swimBottomColor) qs.set('swimBottomColor', swimBottomColor);
-  if (swimLeftColor !== DEFAULT_swimLeftColor) qs.set('swimLeftColor', swimLeftColor);
+  if (centerColor !== modeDefault('centerColor', DEFAULT_centerColor)) qs.set('centerColor', centerColor);
+  if (swimTopColor !== modeDefault('swimTopColor', DEFAULT_swimTopColor)) qs.set('swimTopColor', swimTopColor);
+  if (swimRightColor !== modeDefault('swimRightColor', DEFAULT_swimRightColor)) qs.set('swimRightColor', swimRightColor);
+  if (swimBottomColor !== modeDefault('swimBottomColor', DEFAULT_swimBottomColor)) qs.set('swimBottomColor', swimBottomColor);
+  if (swimLeftColor !== modeDefault('swimLeftColor', DEFAULT_swimLeftColor)) qs.set('swimLeftColor', swimLeftColor);
   addFloat('centerCircleRel',     centerCircleRel,     DEFAULT_centerCircleRel);
   addFloat('shaftWidthRel',       shaftWidthRel,       DEFAULT_shaftWidthRel);
   addFloat('tipRel',              tipRel,              DEFAULT_tipRel);
@@ -2561,11 +2554,11 @@ function buildConfigUrl() {
   addFloat('minuteDiamondBaseInsetRel', minuteDiamondBaseInsetRel, DEFAULT_minuteDiamondBaseInsetRel);
   addFloat('minuteDiamondBackRel', minuteDiamondBackRel, DEFAULT_minuteDiamondBackRel);
   addFloat('minuteDiamondWidthRel', minuteDiamondWidthRel, DEFAULT_minuteDiamondWidthRel);
-  if (minuteColor !== DEFAULT_minuteColor) qs.set('minuteColor', minuteColor);
+  if (minuteColor !== modeDefault('minuteColor', DEFAULT_minuteColor)) qs.set('minuteColor', minuteColor);
 
   // VFD settings
   addBool('vfdEnabled', vfdEnabled, DEFAULT_vfdEnabled);
-  if (vfdColor !== DEFAULT_vfdColor) qs.set('vfdColor', vfdColor);
+  if (vfdColor !== modeDefault('vfdColor', DEFAULT_vfdColor)) qs.set('vfdColor', vfdColor);
   addFloat('vfdScaleRel', vfdScaleRel, DEFAULT_vfdScaleRel);
   addFloat('vfdYOffsetRel', vfdYOffsetRel, DEFAULT_vfdYOffsetRel);
   addFloat('vfdColonPadding', vfdColonPadding, DEFAULT_vfdColonPadding);
@@ -2592,9 +2585,9 @@ function buildConfigUrl() {
   addFloat('wallMinuteWidthRel', wallMinuteWidthRel, DEFAULT_wallMinuteWidthRel);
   addFloat('wallSecondLengthRel', wallSecondLengthRel, DEFAULT_wallSecondLengthRel);
   addFloat('wallSecondWidthRel', wallSecondWidthRel, DEFAULT_wallSecondWidthRel);
-  if (wallHourColor !== DEFAULT_wallHourColor) qs.set('wallHourColor', wallHourColor);
-  if (wallMinuteColor !== DEFAULT_wallMinuteColor) qs.set('wallMinuteColor', wallMinuteColor);
-  if (wallSecondColor !== DEFAULT_wallSecondColor) qs.set('wallSecondColor', wallSecondColor);
+  if (wallHourColor !== modeDefault('wallHourColor', DEFAULT_wallHourColor)) qs.set('wallHourColor', wallHourColor);
+  if (wallMinuteColor !== modeDefault('wallMinuteColor', DEFAULT_wallMinuteColor)) qs.set('wallMinuteColor', wallMinuteColor);
+  if (wallSecondColor !== modeDefault('wallSecondColor', DEFAULT_wallSecondColor)) qs.set('wallSecondColor', wallSecondColor);
 
   const query = qs.toString();
   return query ? `${base}?${query}` : base;
