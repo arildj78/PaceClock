@@ -1,0 +1,221 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Accessing Configuration &mdash; Svømmeklokke2 Documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=60dbed4a"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="URL Parameters" href="url-parameters/index.html" />
+    <link rel="prev" title="Hosted Clock" href="hosted-clock.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Svømmeklokke2
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../overview.html">Project Overview</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../overview.html#components">Components</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../overview.html#features">Features</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Usage</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="hosted-clock.html">Hosted Clock</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Accessing Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#setup-mode">Setup Mode</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#url-parameters">URL Parameters</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#manual-url-construction">Manual URL Construction</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#local-configuration">Local Configuration</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="url-parameters/index.html">URL Parameters</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="url-parameters/clock-geometry.html">Clock Geometry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="url-parameters/hands-diamond.html">Hands &amp; Diamond</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="url-parameters/hands-diamond.html#second-hand-main-hand">Second Hand (Main Hand)</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="url-parameters/numbers.html">Numbers</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="url-parameters/numbers.html#individual-number-fine-tuning">Individual Number Fine-Tuning</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="url-parameters/digital-display.html">Digital Display</a></li>
+<li class="toctree-l3"><a class="reference internal" href="url-parameters/minute-hand.html">Minute Hand</a></li>
+<li class="toctree-l3"><a class="reference internal" href="url-parameters/reference-image.html">Reference Image</a></li>
+<li class="toctree-l3"><a class="reference internal" href="url-parameters/animation-control.html">Animation Control</a></li>
+<li class="toctree-l3"><a class="reference internal" href="url-parameters/logo.html">Logo</a></li>
+<li class="toctree-l3"><a class="reference internal" href="url-parameters/screen-saver.html">Screen Saver</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="creating-url.html">Creating a URL</a></li>
+<li class="toctree-l2"><a class="reference internal" href="example-urls.html">Example URLs</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="example-urls.html#minimal-display-no-digital-time">Minimal Display (No Digital Time)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="example-urls.html#large-clock-with-logo">Large Clock with Logo</a></li>
+<li class="toctree-l3"><a class="reference internal" href="example-urls.html#green-display-theme">Green Display Theme</a></li>
+<li class="toctree-l3"><a class="reference internal" href="example-urls.html#seconds-only-no-minute-hand">Seconds Only (No Minute Hand)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="example-urls.html#fast-drift-for-screensaver">Fast Drift for Screensaver</a></li>
+<li class="toctree-l3"><a class="reference internal" href="example-urls.html#custom-size-and-position">Custom Size and Position</a></li>
+<li class="toctree-l3"><a class="reference internal" href="example-urls.html#presentation-mode-static-hand-position">Presentation Mode (Static Hand Position)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="example-urls.html#setup-mode-for-configuration">Setup Mode for Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="example-urls.html#complete-custom-configuration">Complete Custom Configuration</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="application/index.html">Main Application (clock.html)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="application/head.html">Head</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="application/head.html#meta-tags">Meta Tags</a></li>
+<li class="toctree-l4"><a class="reference internal" href="application/head.html#font-loading">Font Loading</a></li>
+<li class="toctree-l4"><a class="reference internal" href="application/head.html#title">Title</a></li>
+<li class="toctree-l4"><a class="reference internal" href="application/head.html#inline-css">Inline CSS</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="application/body/index.html">Body</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="application/body/left-panel.html">Left Panel</a></li>
+<li class="toctree-l4"><a class="reference internal" href="application/body/right-panel.html">Right Panel</a></li>
+<li class="toctree-l4"><a class="reference internal" href="application/body/script/index.html">Script</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../deployment.html">Deployment &amp; Hosting</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../deployment.html#github-pages">GitHub Pages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../deployment.html#documentation-deployment">Documentation Deployment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../deployment.html#other-hosting-options">Other Hosting Options</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Svømmeklokke2</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Usage</a></li>
+      <li class="breadcrumb-item active">Accessing Configuration</li>
+      <li class="wy-breadcrumbs-aside">
+              <a href="https://github.com/arildj78/PaceClock/blob/main/docs/usage/accessing-configuration.rst" class="fa fa-github"> Edit on GitHub</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="accessing-configuration">
+<h1>Accessing Configuration<a class="headerlink" href="#accessing-configuration" title="Link to this heading"></a></h1>
+<p>There are two ways to access and modify clock settings: setup mode and URL parameters.</p>
+<section id="setup-mode">
+<h2>Setup Mode<a class="headerlink" href="#setup-mode" title="Link to this heading"></a></h2>
+<p><strong>Interactive Control Panel</strong></p>
+<p>The easiest way to adjust settings is through the setup mode control panel.</p>
+<p>Open the clock with setup mode enabled:</p>
+<p><code class="docutils literal notranslate"><span class="pre">https://arildj78.github.io/PaceClock/clock.html?setupmode=1</span></code></p>
+<p>The left side of the screen displays an interactive control panel with sliders and checkboxes for all settings. Changes are reflected immediately on the clock.</p>
+<p><strong>Copy Configuration URL</strong></p>
+<p>Once you’ve configured the clock to your liking:</p>
+<ol class="arabic simple">
+<li><p>Look at the bottom of the setup panel</p></li>
+<li><p>Click the <strong>Copy URL</strong> button</p></li>
+<li><p>The URL with all your settings is now in your clipboard</p></li>
+<li><p>Share or bookmark this URL to save your configuration</p></li>
+</ol>
+</section>
+<section id="url-parameters">
+<h2>URL Parameters<a class="headerlink" href="#url-parameters" title="Link to this heading"></a></h2>
+<p>All clock settings can be controlled via URL query parameters. You don’t need setup mode to use custom URLs—you can manually construct them or share them directly.</p>
+<p>See the URL Parameters section for a complete reference of all available parameters and their values.</p>
+<section id="manual-url-construction">
+<h3>Manual URL Construction<a class="headerlink" href="#manual-url-construction" title="Link to this heading"></a></h3>
+<p>To manually build a URL with custom settings:</p>
+<p><code class="docutils literal notranslate"><span class="pre">clock.html?parameter1=value1&amp;parameter2=value2&amp;parameter3=value3</span></code></p>
+<p>Example:</p>
+<p><code class="docutils literal notranslate"><span class="pre">clock.html?outerRel=0.9&amp;showLogo=1&amp;vfdColor=%2300ff00</span></code></p>
+<p><em>Note: Special characters like # in hex colors need URL encoding (# becomes %23)</em></p>
+</section>
+</section>
+<section id="local-configuration">
+<h2>Local Configuration<a class="headerlink" href="#local-configuration" title="Link to this heading"></a></h2>
+<p>If you’re using clock.html locally:</p>
+<ol class="arabic simple">
+<li><p>Open <code class="docutils literal notranslate"><span class="pre">clock.html?setupmode=1</span></code> in your browser</p></li>
+<li><p>Adjust all settings using the control panel</p></li>
+<li><p>Click <strong>Copy URL</strong> to get the configuration</p></li>
+<li><p>Save this URL as a bookmark or share it</p></li>
+</ol>
+<p>The configuration is entirely encoded in the URL, so you can create multiple bookmarks for different setups (pool A, pool B, different screen sizes, etc.).</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="hosted-clock.html" class="btn btn-neutral float-left" title="Hosted Clock" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="url-parameters/index.html" class="btn btn-neutral float-right" title="URL Parameters" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Arild M Johannessen.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

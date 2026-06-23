@@ -1,0 +1,264 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Deployment &amp; Hosting &mdash; Svømmeklokke2 Documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=60dbed4a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="For the Setup" href="usage/application/body/script/functions-events/for-setup.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Svømmeklokke2
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Project Overview</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="overview.html#components">Components</a></li>
+<li class="toctree-l2"><a class="reference internal" href="overview.html#features">Features</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="usage/index.html">Usage</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="usage/hosted-clock.html">Hosted Clock</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage/accessing-configuration.html">Accessing Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="usage/accessing-configuration.html#setup-mode">Setup Mode</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage/accessing-configuration.html#url-parameters">URL Parameters</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="usage/accessing-configuration.html#manual-url-construction">Manual URL Construction</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="usage/accessing-configuration.html#local-configuration">Local Configuration</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="usage/url-parameters/index.html">URL Parameters</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="usage/url-parameters/clock-geometry.html">Clock Geometry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage/url-parameters/hands-diamond.html">Hands &amp; Diamond</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="usage/url-parameters/hands-diamond.html#second-hand-main-hand">Second Hand (Main Hand)</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="usage/url-parameters/numbers.html">Numbers</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="usage/url-parameters/numbers.html#individual-number-fine-tuning">Individual Number Fine-Tuning</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="usage/url-parameters/digital-display.html">Digital Display</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage/url-parameters/minute-hand.html">Minute Hand</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage/url-parameters/reference-image.html">Reference Image</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage/url-parameters/animation-control.html">Animation Control</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage/url-parameters/logo.html">Logo</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage/url-parameters/screen-saver.html">Screen Saver</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="usage/creating-url.html">Creating a URL</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage/example-urls.html">Example URLs</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="usage/example-urls.html#minimal-display-no-digital-time">Minimal Display (No Digital Time)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage/example-urls.html#large-clock-with-logo">Large Clock with Logo</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage/example-urls.html#green-display-theme">Green Display Theme</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage/example-urls.html#seconds-only-no-minute-hand">Seconds Only (No Minute Hand)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage/example-urls.html#fast-drift-for-screensaver">Fast Drift for Screensaver</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage/example-urls.html#custom-size-and-position">Custom Size and Position</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage/example-urls.html#presentation-mode-static-hand-position">Presentation Mode (Static Hand Position)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage/example-urls.html#setup-mode-for-configuration">Setup Mode for Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage/example-urls.html#complete-custom-configuration">Complete Custom Configuration</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="usage/application/index.html">Main Application (clock.html)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="usage/application/head.html">Head</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="usage/application/head.html#meta-tags">Meta Tags</a></li>
+<li class="toctree-l4"><a class="reference internal" href="usage/application/head.html#font-loading">Font Loading</a></li>
+<li class="toctree-l4"><a class="reference internal" href="usage/application/head.html#title">Title</a></li>
+<li class="toctree-l4"><a class="reference internal" href="usage/application/head.html#inline-css">Inline CSS</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="usage/application/body/index.html">Body</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="usage/application/body/left-panel.html">Left Panel</a></li>
+<li class="toctree-l4"><a class="reference internal" href="usage/application/body/right-panel.html">Right Panel</a></li>
+<li class="toctree-l4"><a class="reference internal" href="usage/application/body/script/index.html">Script</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Deployment &amp; Hosting</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#github-pages">GitHub Pages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#documentation-deployment">Documentation Deployment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#other-hosting-options">Other Hosting Options</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Svømmeklokke2</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Deployment &amp; Hosting</li>
+      <li class="wy-breadcrumbs-aside">
+              <a href="https://github.com/arildj78/PaceClock/blob/main/docs/deployment.rst" class="fa fa-github"> Edit on GitHub</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="deployment-hosting">
+<h1>Deployment &amp; Hosting<a class="headerlink" href="#deployment-hosting" title="Link to this heading"></a></h1>
+<section id="github-pages">
+<h2>GitHub Pages<a class="headerlink" href="#github-pages" title="Link to this heading"></a></h2>
+<p><strong>Current Deployment</strong></p>
+<p>The project is deployed at: <a class="reference external" href="https://arildj78.github.io/PaceClock/clock.html">https://arildj78.github.io/PaceClock/clock.html</a></p>
+<p><strong>Deploying Updates</strong></p>
+<p>To deploy application updates:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>add<span class="w"> </span>.
+git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;Update clock&quot;</span>
+git<span class="w"> </span>push<span class="w"> </span>origin<span class="w"> </span>main
+</pre></div>
+</div>
+<p>GitHub Pages automatically serves the updated files from the <code class="docutils literal notranslate"><span class="pre">main</span></code> branch.</p>
+<p><strong>Repository Settings</strong></p>
+<p>Ensure GitHub Pages is enabled in repository settings:</p>
+<ol class="arabic simple">
+<li><p>Go to repository Settings → Pages</p></li>
+<li><p>Source: Deploy from a branch</p></li>
+<li><p>Branch: <code class="docutils literal notranslate"><span class="pre">main</span></code> / <code class="docutils literal notranslate"><span class="pre">(root)</span></code></p></li>
+<li><p>Save</p></li>
+</ol>
+<p>Changes typically appear within 1-2 minutes of pushing.</p>
+</section>
+<section id="documentation-deployment">
+<h2>Documentation Deployment<a class="headerlink" href="#documentation-deployment" title="Link to this heading"></a></h2>
+<p><strong>Automatic Deployment</strong></p>
+<p>Documentation is auto-deployed via GitHub Actions workflow (<code class="docutils literal notranslate"><span class="pre">.github/workflows/docs.yml</span></code>) to:</p>
+<p><a class="reference external" href="https://arildj78.github.io/PaceClock/docs/">https://arildj78.github.io/PaceClock/docs/</a></p>
+<p>The workflow automatically:</p>
+<ol class="arabic simple">
+<li><p>Triggers on pushes to <code class="docutils literal notranslate"><span class="pre">main</span></code> branch</p></li>
+<li><p>Installs Python and Sphinx dependencies</p></li>
+<li><p>Builds HTML documentation from <code class="docutils literal notranslate"><span class="pre">docs/</span></code> folder</p></li>
+<li><p>Deploys to <code class="docutils literal notranslate"><span class="pre">gh-pages</span></code> branch</p></li>
+<li><p>Publishes to GitHub Pages</p></li>
+</ol>
+<p><strong>Building Locally</strong></p>
+<p>To build and preview documentation on your machine:</p>
+<div class="highlight-powershell notranslate"><div class="highlight"><pre><span></span><span class="c"># Install dependencies</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="n">-r</span> <span class="n">docs</span><span class="p">/</span><span class="n">requirements</span><span class="p">.</span><span class="n">txt</span>
+
+<span class="c"># Build HTML docs</span>
+<span class="nb">cd </span><span class="n">docs</span>
+<span class="p">./</span><span class="n">make</span><span class="p">.</span><span class="n">bat</span> <span class="n">html</span>
+
+<span class="c"># Open in browser</span>
+<span class="nb">start </span><span class="n">_build</span><span class="p">/</span><span class="n">html</span><span class="p">/</span><span class="n">index</span><span class="p">.</span><span class="n">html</span>
+</pre></div>
+</div>
+<p><strong>Manual Deployment</strong></p>
+<p>If automatic deployment fails, manually trigger the workflow:</p>
+<ol class="arabic simple">
+<li><p>Go to Actions tab in GitHub repository</p></li>
+<li><p>Select “Deploy Documentation” workflow</p></li>
+<li><p>Click “Run workflow”</p></li>
+</ol>
+</section>
+<section id="other-hosting-options">
+<h2>Other Hosting Options<a class="headerlink" href="#other-hosting-options" title="Link to this heading"></a></h2>
+<p><strong>Self-Hosted Web Server</strong></p>
+<p>Copy all project files to your web server:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">clock.html</span></code> - Main application</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">index.html</span></code> - Dual-panel display (optional)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">font/bfont.woff2</span></code> - Custom font</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">bsk.png</span></code>, <code class="docutils literal notranslate"><span class="pre">bsk_klokke.png</span></code> - Logo images</p></li>
+</ul>
+<p>Serve with any web server (Apache, nginx, IIS, etc.). No server-side processing required.</p>
+<p><strong>Cloud Storage</strong></p>
+<p>Upload to cloud storage with static website hosting:</p>
+<ul class="simple">
+<li><p><strong>AWS S3</strong> - Enable static website hosting on bucket</p></li>
+<li><p><strong>Azure Blob Storage</strong> - Configure static website serving</p></li>
+<li><p><strong>Google Cloud Storage</strong> - Set up static site bucket</p></li>
+<li><p><strong>Netlify/Vercel</strong> - Drag-and-drop deployment</p></li>
+</ul>
+<p><strong>Local Display (No Internet)</strong></p>
+<p>For pool deck displays without internet:</p>
+<ol class="arabic simple">
+<li><p>Copy project folder to USB drive</p></li>
+<li><p>Plug into display computer</p></li>
+<li><p>Open <code class="docutils literal notranslate"><span class="pre">clock.html</span></code> directly in a web browser</p></li>
+<li><p>Bookmark or add to startup for quick access</p></li>
+</ol>
+<p>The clock uses system time, so no internet connection is required after initial file load.</p>
+<p><strong>Offline PWA (Future Enhancement)</strong></p>
+<p>Consider adding a service worker for offline functionality and app-like installation on devices.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="usage/application/body/script/functions-events/for-setup.html" class="btn btn-neutral float-left" title="For the Setup" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Arild M Johannessen.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
