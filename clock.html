@@ -978,7 +978,8 @@ modeStates[MODE_WALL] = getCurrentStateSnapshot();
 
 // Apply wall-specific color defaults to wall mode snapshot
 for (const [key, value] of Object.entries(WALL_MODE_COLORS)) {
-  if (key === 'showHourNumbers' || key.includes('Color')) {
+  // URL-provided values must win over wall mode defaults.
+  if ((key === 'showHourNumbers' || key.includes('Color')) && !params.has(key)) {
     modeStates[MODE_WALL][key] = value;
   }
 }
