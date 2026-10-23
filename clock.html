@@ -46,13 +46,16 @@
       overflow-y:auto;
     }
     #rightPanel {
-      flex:1 1 auto;
+      flex:1 1 0;
       display:flex;
       position:relative;
+      width:0;
       min-width:0;
       min-height:0;
       height:100%;
       box-sizing:border-box;
+      overflow:hidden;
+      visibility:hidden;
     }
     #clock {
       background:rgb(0, 0, 0);
@@ -1095,12 +1098,18 @@ let drawingAreaWidth = 0;
 let drawingAreaHeight = 0;
 let driftInitialized = false;
 let panelResizeObserver = null;
+let sizeCheckFrame = 0;
+let sizeCheckGeneration = 0;
+let candidateDrawingAreaWidth = 0;
+let candidateDrawingAreaHeight = 0;
+let consecutiveSizeSamples = 0;
+let animationStarted = false;
 
 function getDrawingAreaSizeFromPanel() {
   const rect = rightPanel.getBoundingClientRect();
   return {
-    w: Math.max(0, Math.round(rect.width)),
-    h: Math.max(0, Math.round(rect.height))
+    w: rect.width,
+    h: rect.height
   };
 }
 
@@ -1169,37 +1178,86 @@ function clampDriftToBounds(reverseOutwardVelocity) {
   return true;
 }
 
-function applyMeasuredDrawingArea(forceDriftInit) {
-  const size = getDrawingAreaSizeFromPanel();
-  if (size.w <= 0 || size.h <= 0) return;
-
-  const sizeChanged = size.w !== drawingAreaWidth || size.h !== drawingAreaHeight;
-  drawingAreaWidth = size.w;
-  drawingAreaHeight = size.h;
+function commitDrawingAreaSize(width, height) {
+  const sizeChanged = width !== drawingAreaWidth || height !== drawingAreaHeight;
+  drawingAreaWidth = width;
+  drawingAreaHeight = height;
 
   if (sizeChanged) {
-    canvas.width = drawingAreaWidth;
-    canvas.height = drawingAreaHeight;
+    canvas.width = width;
+    canvas.height = height;
     recomputeDriftVelocity();
-    if (forceDriftInit || !driftInitialized) {
-      initializeDrift(canvas.width, canvas.height);
+    if (!driftInitialized) {
+      initializeDrift(width, height);
       driftInitialized = true;
     } else {
       clampDriftToBounds(true);
     }
   }
+
   updateDebugOverlay();
+  drawCurrentFrame();
+  rightPanel.style.visibility = 'visible';
+
+  if (!animationStarted) {
+    animationStarted = true;
+    requestAnimationFrame(frame);
+  }
+}
+
+function sampleDrawingArea(generation) {
+  sizeCheckFrame = 0;
+  if (generation !== sizeCheckGeneration) {
+    requestDrawingAreaCheck();
+    return;
+  }
+
+  const size = getDrawingAreaSizeFromPanel();
+  if (size.w <= 0 || size.h <= 0) {
+    candidateDrawingAreaWidth = 0;
+    candidateDrawingAreaHeight = 0;
+    consecutiveSizeSamples = 0;
+    sizeCheckFrame = requestAnimationFrame(() => sampleDrawingArea(generation));
+    return;
+  }
+
+  if (size.w === candidateDrawingAreaWidth && size.h === candidateDrawingAreaHeight) {
+    consecutiveSizeSamples += 1;
+  } else {
+    candidateDrawingAreaWidth = size.w;
+    candidateDrawingAreaHeight = size.h;
+    consecutiveSizeSamples = 1;
+  }
+
+  if (consecutiveSizeSamples >= 3) {
+    const acceptedWidth = Math.max(1, Math.round(size.w));
+    const acceptedHeight = Math.max(1, Math.round(size.h));
+    if (acceptedWidth !== drawingAreaWidth || acceptedHeight !== drawingAreaHeight) {
+      commitDrawingAreaSize(acceptedWidth, acceptedHeight);
+    }
+    return;
+  }
+
+  sizeCheckFrame = requestAnimationFrame(() => sampleDrawingArea(generation));
+}
+
+function requestDrawingAreaCheck() {
+  sizeCheckGeneration += 1;
+  candidateDrawingAreaWidth = 0;
+  candidateDrawingAreaHeight = 0;
+  consecutiveSizeSamples = 0;
+  if (!sizeCheckFrame) {
+    const generation = sizeCheckGeneration;
+    sizeCheckFrame = requestAnimationFrame(() => sampleDrawingArea(generation));
+  }
 }
 
 function setupPanelResizeObserver() {
-  if (typeof ResizeObserver === 'undefined') {
-    window.addEventListener('resize', () => applyMeasuredDrawingArea(false));
-    return;
+  if (typeof ResizeObserver !== 'undefined') {
+    panelResizeObserver = new ResizeObserver(requestDrawingAreaCheck);
+    panelResizeObserver.observe(rightPanel);
   }
-  panelResizeObserver = new ResizeObserver(() => {
-    applyMeasuredDrawingArea(false);
-  });
-  panelResizeObserver.observe(rightPanel);
+  window.addEventListener('resize', requestDrawingAreaCheck);
 }
 
 function initializeDrift(w, h) {
@@ -1835,10 +1893,8 @@ function drawClock() {
   ctx.restore();
 }
 
-function frame() {
-  applyMeasuredDrawingArea(false);
+function drawCurrentFrame() {
   if (canvas.width <= 0 || canvas.height <= 0) {
-    requestAnimationFrame(frame);
     return;
   }
   // Clear full canvas in absolute coordinates
@@ -1850,12 +1906,17 @@ function frame() {
   const size = r * 2;
   if (fontReady && !faceCanvas) ensureFaceCache(size, r);
   drawClock();
+}
+
+function frame() {
+  if (drawingAreaWidth > 0 && drawingAreaHeight > 0) {
+    drawCurrentFrame();
+  }
   requestAnimationFrame(frame);
 }
 
 setupPanelResizeObserver();
-applyMeasuredDrawingArea(true);
-requestAnimationFrame(frame);
+requestDrawingAreaCheck();
 
 // ===== Slider wiring (all relative parameters) =====
 
