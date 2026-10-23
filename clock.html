@@ -13,6 +13,10 @@
       font-style: normal;
       font-display: block;
     }
+    html, body {
+      width:100%;
+      height:100%;
+    }
     body {
       margin:0;
       background:rgb(0, 0, 0);
@@ -20,32 +24,71 @@
       justify-content:flex-start;
       align-items:stretch;
       height:100vh;
+      min-width:0;
+      min-height:0;
+      overflow:hidden;
       color:rgb(255, 255, 255);
       font-family: 'BFont', Arial, sans-serif;
       gap:24px;
     }
     #leftPanel {
       display:none; /* hidden by default; can be enabled via URL flag */
+      flex:0 0 260px;
       flex-direction:column;
       gap:16px;
       padding:16px;
       box-sizing:border-box;
       width:260px;
+      min-width:0;
+      min-height:0;
       max-width:40vw;
       max-height:100vh;
       overflow-y:auto;
     }
     #rightPanel {
-      flex:1;
+      flex:1 1 auto;
       display:flex;
-      justify-content:center;
-      align-items:center;
-      min-height:100vh;
+      position:relative;
+      min-width:0;
+      min-height:0;
+      height:100%;
       box-sizing:border-box;
     }
     #clock {
       background:rgb(0, 0, 0);
       display:block;
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:100%;
+      min-width:0;
+      min-height:0;
+      z-index:2;
+    }
+    .debugOverlay {
+      position:absolute;
+      inset:0;
+      pointer-events:none;
+      display:none;
+    }
+    #debugCheckerboard {
+      z-index:1;
+      background:
+        linear-gradient(45deg, #080808 25%, transparent 25%),
+        linear-gradient(-45deg, #080808 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #080808 75%),
+        linear-gradient(-45deg, transparent 75%, #080808 75%),
+        #292929;
+      background-size:120px 120px;
+      background-position:0 0, 0 60px, 60px -60px, -60px 0;
+    }
+    #debugDimensions {
+      z-index:3;
+      align-items:center;
+      justify-content:center;
+      color:#00F5FF;
+      font-weight:700;
+      text-shadow:0 0 10px rgba(0, 245, 255, 0.75);
     }
     .groupTitle {
       font-size:13px;
@@ -511,6 +554,9 @@
         <label style="flex-direction:row;align-items:center;gap:8px;">
           <button id="driftResetButton" type="button">Randomize drift</button>
         </label>
+        <label style="flex-direction:row;align-items:center;gap:8px;">
+          <input id="debugOverlayCheckbox" type="checkbox" /> Show debug overlay
+        </label>
       </div>
     </details>
     
@@ -524,7 +570,9 @@
   </div>
 
   <div id="rightPanel">
+    <div id="debugCheckerboard" class="debugOverlay"></div>
     <canvas id="clock"></canvas>
+    <div id="debugDimensions" class="debugOverlay"></div>
   </div>
 
 <script src="./clock-color-presets.js"></script>
@@ -569,6 +617,9 @@ for (const n of [5,10,15,20,25,30,35,40,45,50,55,60]) {
 const canvas = document.getElementById('clock');
 const ctx = canvas.getContext('2d');
 const leftPanel = document.getElementById('leftPanel');
+const rightPanel = document.getElementById('rightPanel');
+const debugCheckerboard = document.getElementById('debugCheckerboard');
+const debugDimensions = document.getElementById('debugDimensions');
 const swimTabButton = document.getElementById('swimTabButton');
 const wallTabButton = document.getElementById('wallTabButton');
 const copyFromOtherButton = document.getElementById('copyFromOtherButton');
@@ -794,6 +845,7 @@ const DEFAULT_showLogo            = false;
 const DEFAULT_runClock            = true;
 const DEFAULT_manualAngle         = 0.00;
 const DEFAULT_showBg              = false;
+const DEFAULT_debugOverlay        = false;
 
 // Digital VFD defaults
 const DEFAULT_vfdEnabled         = true;
@@ -870,6 +922,7 @@ let showLogo            = DEFAULT_showLogo;
 let runClock            = DEFAULT_runClock;
 let manualAngle         = DEFAULT_manualAngle;
 let showBg              = DEFAULT_showBg;
+let debugOverlayEnabled = DEFAULT_debugOverlay;
 let minuteShaftWidthRel = DEFAULT_minuteShaftWidthRel;
 let minuteTipRel        = DEFAULT_minuteTipRel;
 let minuteDiamondBaseInsetRel = DEFAULT_minuteDiamondBaseInsetRel;
@@ -939,6 +992,7 @@ showLogo            = paramBool('showLogo', showLogo);
 runClock            = paramBool('runClock', runClock);
 manualAngle         = paramFloat('manualAngle', manualAngle);
 showBg              = paramBool('showBg', showBg);
+debugOverlayEnabled = paramBool('debug', debugOverlayEnabled);
 minuteShaftWidthRel = paramFloat('minuteShaftWidthRel', minuteShaftWidthRel);
 minuteTipRel        = paramFloat('minuteTipRel', minuteTipRel);
 minuteDiamondBaseInsetRel = paramFloat('minuteDiamondBaseInsetRel', minuteDiamondBaseInsetRel);
@@ -1037,17 +1091,28 @@ function getVFDSettingsHash() {
   return `${vfdEnabled}|${vfdColor}|${vfdScaleRel}|${vfdYOffsetRel}|${vfdColonPadding}|${vfdCornerRel}|${vfdGlowRel}|${vfdDigitGapRel}|${vfdTestMode}`;
 }
 
-function resizeCanvasToPanel() {
-  const rightPanel = document.getElementById('rightPanel');
-  const canvas = document.getElementById('clock');
-  // Get panel size
-  const w = rightPanel.clientWidth;
-  const h = rightPanel.clientHeight;
-  canvas.width = w;
-  canvas.height = h;
+let drawingAreaWidth = 0;
+let drawingAreaHeight = 0;
+let driftInitialized = false;
+let panelResizeObserver = null;
+
+function getDrawingAreaSizeFromPanel() {
+  const rect = rightPanel.getBoundingClientRect();
+  return {
+    w: Math.max(0, Math.round(rect.width)),
+    h: Math.max(0, Math.round(rect.height))
+  };
 }
-window.addEventListener('resize', resizeCanvasToPanel);
-resizeCanvasToPanel();
+
+function updateDebugOverlay() {
+  const showDebug = !!debugOverlayEnabled;
+  debugCheckerboard.style.display = showDebug ? 'block' : 'none';
+  debugDimensions.style.display = showDebug ? 'flex' : 'none';
+  if (showDebug) {
+    debugDimensions.textContent = `${drawingAreaWidth} x ${drawingAreaHeight}`;
+    debugDimensions.style.fontSize = `${drawingAreaHeight * 0.2}px`;
+  }
+}
 
 function getCanvasCenterAndRadius() {
   const canvas = document.getElementById('clock');
@@ -1059,18 +1124,91 @@ function getCanvasCenterAndRadius() {
   return { cx: w / 2, cy: h / 2, r };
 }
 
-function initializeDrift(w, h) {
-  if (!driftEnabled) return;
-  const diag = Math.hypot(w, h);
+function computeDriftBounds(w, h) {
+  if (w <= 0 || h <= 0) return null;
+  const { r } = getCanvasCenterAndRadius();
+  const marginPx = Math.min(w, h) * driftMarginRel;
+  return {
+    maxX: (w / 2) - marginPx - r,
+    maxY: (h / 2) - marginPx - r
+  };
+}
+
+function recomputeDriftVelocity() {
+  if (!driftEnabled || canvas.width <= 0 || canvas.height <= 0) {
+    driftVelX = 0;
+    driftVelY = 0;
+    return;
+  }
+  const diag = Math.hypot(canvas.width, canvas.height);
   const speed = diag * driftSpeedRel * (showSetupPanel ? driftSetupMultiplier : 1);
   const angle = (driftAngleDeg % 360) * Math.PI / 180;
   driftVelX = Math.cos(angle) * speed;
   driftVelY = Math.sin(angle) * speed;
-  // compute max offsets so clock stays within margin
-  const { r } = getCanvasCenterAndRadius();
-  const marginPx = Math.min(w, h) * driftMarginRel;
-  const maxX = (w / 2) - marginPx - r;
-  const maxY = (h / 2) - marginPx - r;
+}
+
+function clampDriftToBounds(reverseOutwardVelocity) {
+  const bounds = computeDriftBounds(canvas.width, canvas.height);
+  if (!bounds || bounds.maxX <= 0 || bounds.maxY <= 0) {
+    driftOffsetX = 0;
+    driftOffsetY = 0;
+    driftVelX = 0;
+    driftVelY = 0;
+    return false;
+  }
+
+  driftOffsetX = Math.max(-bounds.maxX, Math.min(bounds.maxX, driftOffsetX));
+  driftOffsetY = Math.max(-bounds.maxY, Math.min(bounds.maxY, driftOffsetY));
+
+  if (reverseOutwardVelocity) {
+    if (driftOffsetX >= bounds.maxX && driftVelX > 0) driftVelX *= -1;
+    if (driftOffsetX <= -bounds.maxX && driftVelX < 0) driftVelX *= -1;
+    if (driftOffsetY >= bounds.maxY && driftVelY > 0) driftVelY *= -1;
+    if (driftOffsetY <= -bounds.maxY && driftVelY < 0) driftVelY *= -1;
+  }
+  return true;
+}
+
+function applyMeasuredDrawingArea(forceDriftInit) {
+  const size = getDrawingAreaSizeFromPanel();
+  if (size.w <= 0 || size.h <= 0) return;
+
+  const sizeChanged = size.w !== drawingAreaWidth || size.h !== drawingAreaHeight;
+  drawingAreaWidth = size.w;
+  drawingAreaHeight = size.h;
+
+  if (sizeChanged) {
+    canvas.width = drawingAreaWidth;
+    canvas.height = drawingAreaHeight;
+    recomputeDriftVelocity();
+    if (forceDriftInit || !driftInitialized) {
+      initializeDrift(canvas.width, canvas.height);
+      driftInitialized = true;
+    } else {
+      clampDriftToBounds(true);
+    }
+  }
+  updateDebugOverlay();
+}
+
+function setupPanelResizeObserver() {
+  if (typeof ResizeObserver === 'undefined') {
+    window.addEventListener('resize', () => applyMeasuredDrawingArea(false));
+    return;
+  }
+  panelResizeObserver = new ResizeObserver(() => {
+    applyMeasuredDrawingArea(false);
+  });
+  panelResizeObserver.observe(rightPanel);
+}
+
+function initializeDrift(w, h) {
+  if (!driftEnabled) return;
+  if (w <= 0 || h <= 0) return;
+  recomputeDriftVelocity();
+  const bounds = computeDriftBounds(w, h);
+  if (!bounds) return;
+  const { maxX, maxY } = bounds;
   // If margin eliminates available space, pin to center and stop movement
   if (maxX <= 0 || maxY <= 0) {
     driftOffsetX = 0;
@@ -1084,13 +1222,12 @@ function initializeDrift(w, h) {
 }
 
 function updateDrift(w, h) {
-  if (!driftEnabled) return;
+  if (!driftEnabled || w <= 0 || h <= 0) return;
   driftOffsetX += driftVelX;
   driftOffsetY += driftVelY;
-  const { r } = getCanvasCenterAndRadius();
-  const marginPx = Math.min(w, h) * driftMarginRel;
-  const maxX = (w / 2) - marginPx - r;
-  const maxY = (h / 2) - marginPx - r;
+  const bounds = computeDriftBounds(w, h);
+  if (!bounds) return;
+  const { maxX, maxY } = bounds;
   // If no space left, keep centered and abort movement
   if (maxX <= 0 || maxY <= 0) {
     driftOffsetX = 0;
@@ -1099,10 +1236,24 @@ function updateDrift(w, h) {
     driftVelY = 0;
     return;
   }
-  if (driftOffsetX > maxX) { driftOffsetX = maxX; driftVelX *= -1; }
-  else if (driftOffsetX < -maxX) { driftOffsetX = -maxX; driftVelX *= -1; }
-  if (driftOffsetY > maxY) { driftOffsetY = maxY; driftVelY *= -1; }
-  else if (driftOffsetY < -maxY) { driftOffsetY = -maxY; driftVelY *= -1; }
+  while (driftOffsetX > maxX || driftOffsetX < -maxX) {
+    if (driftOffsetX > maxX) {
+      driftOffsetX = maxX - (driftOffsetX - maxX);
+      driftVelX *= -1;
+    } else if (driftOffsetX < -maxX) {
+      driftOffsetX = -maxX + (-maxX - driftOffsetX);
+      driftVelX *= -1;
+    }
+  }
+  while (driftOffsetY > maxY || driftOffsetY < -maxY) {
+    if (driftOffsetY > maxY) {
+      driftOffsetY = maxY - (driftOffsetY - maxY);
+      driftVelY *= -1;
+    } else if (driftOffsetY < -maxY) {
+      driftOffsetY = -maxY + (-maxY - driftOffsetY);
+      driftVelY *= -1;
+    }
+  }
 }
 
 // Offscreen cache for static face (ticks + numbers)
@@ -1685,10 +1836,12 @@ function drawClock() {
 }
 
 function frame() {
-  // Ensure canvas matches panel size
-  resizeCanvasToPanel();
+  applyMeasuredDrawingArea(false);
+  if (canvas.width <= 0 || canvas.height <= 0) {
+    requestAnimationFrame(frame);
+    return;
+  }
   // Clear full canvas in absolute coordinates
-  const canvas = document.getElementById('clock');
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   updateDrift(canvas.width, canvas.height);
   // Draw one frame of the clock
@@ -1700,7 +1853,8 @@ function frame() {
   requestAnimationFrame(frame);
 }
 
-initializeDrift(canvas.width, canvas.height);
+setupPanelResizeObserver();
+applyMeasuredDrawingArea(true);
 requestAnimationFrame(frame);
 
 // ===== Slider wiring (all relative parameters) =====
@@ -1867,10 +2021,11 @@ const driftSetupMultiplierValue  = document.getElementById('driftSetupMultiplier
 const driftResetButton        = document.getElementById('driftResetButton');
 const driftAngleDegSlider     = document.getElementById('driftAngleDegSlider');
 const driftAngleDegValue      = document.getElementById('driftAngleDegValue');
+const debugOverlayCheckbox    = document.getElementById('debugOverlayCheckbox');
 
 function syncBackgroundStyles() {
   document.body.style.background = backgroundColor;
-  canvas.style.background = backgroundColor;
+  canvas.style.background = debugOverlayEnabled ? 'transparent' : backgroundColor;
 }
 
 function populateColorPresetSelect() {
@@ -2054,7 +2209,11 @@ function syncControls() {
       driftSetupMultiplierValue.textContent = driftSetupMultiplier.toFixed(0);
     }
   }
+  if (debugOverlayCheckbox) {
+    debugOverlayCheckbox.checked = debugOverlayEnabled;
+  }
   syncBackgroundStyles();
+  updateDebugOverlay();
 
   for (const n of [5,10,15,20,25,30,35,40,45,50,55,60]) {
     const xSlider = document.getElementById(`num${n}x`);
@@ -2421,13 +2580,8 @@ if (driftEnabledCheckbox) {
     if (!driftEnabled) {
       driftVelX = 0; driftVelY = 0; // freeze in place
     } else {
-      // Recompute velocity magnitude from current angle
-      const angle = (driftAngleDeg % 360) * Math.PI / 180;
-      const w = canvas.width, h = canvas.height;
-      const diag = Math.hypot(w, h);
-      const speed = diag * driftSpeedRel * (showSetupPanel ? driftSetupMultiplier : 1);
-      driftVelX = Math.cos(angle) * speed;
-      driftVelY = Math.sin(angle) * speed;
+      recomputeDriftVelocity();
+      clampDriftToBounds(true);
     }
   });
 }
@@ -2435,41 +2589,21 @@ if (driftSpeedRelSlider) {
   driftSpeedRelSlider.addEventListener('input', () => {
     driftSpeedRel = parseFloat(driftSpeedRelSlider.value);
     driftSpeedRelValue.textContent = driftSpeedRel.toFixed(7);
-    // Recompute velocity magnitude keeping direction and position
-    const angle = (driftAngleDeg % 360) * Math.PI / 180;
-    const diag = Math.hypot(canvas.width, canvas.height);
-    const speed = diag * driftSpeedRel * (showSetupPanel ? driftSetupMultiplier : 1);
-    driftVelX = Math.cos(angle) * speed;
-    driftVelY = Math.sin(angle) * speed;
+    recomputeDriftVelocity();
   });
 }
 if (driftMarginRelSlider) {
   driftMarginRelSlider.addEventListener('input', () => {
     driftMarginRel = parseFloat(driftMarginRelSlider.value);
     driftMarginRelValue.textContent = driftMarginRel.toFixed(3);
-    // Clamp current offset within new bounds without resetting velocity
-    const w = canvas.width, h = canvas.height;
-    const { r } = getCanvasCenterAndRadius();
-    const marginPx = Math.min(w, h) * driftMarginRel;
-    const maxX = (w / 2) - marginPx - r;
-    const maxY = (h / 2) - marginPx - r;
-    if (maxX <= 0 || maxY <= 0) {
-      driftOffsetX = 0; driftOffsetY = 0; driftVelX = 0; driftVelY = 0; return;
-    }
-    driftOffsetX = Math.max(-maxX, Math.min(maxX, driftOffsetX));
-    driftOffsetY = Math.max(-maxY, Math.min(maxY, driftOffsetY));
+    clampDriftToBounds(true);
   });
 }
 if (driftSetupMultiplierSlider) {
   driftSetupMultiplierSlider.addEventListener('input', () => {
     driftSetupMultiplier = parseFloat(driftSetupMultiplierSlider.value);
     driftSetupMultiplierValue.textContent = driftSetupMultiplier.toFixed(0);
-    // Scale velocity magnitude in place
-    const angle = (driftAngleDeg % 360) * Math.PI / 180;
-    const diag = Math.hypot(canvas.width, canvas.height);
-    const speed = diag * driftSpeedRel * (showSetupPanel ? driftSetupMultiplier : 1);
-    driftVelX = Math.cos(angle) * speed;
-    driftVelY = Math.sin(angle) * speed;
+    recomputeDriftVelocity();
   });
 }
 if (driftAngleDegSlider) {
@@ -2477,17 +2611,20 @@ if (driftAngleDegSlider) {
     driftAngleDeg = parseFloat(driftAngleDegSlider.value);
     driftAngleDegValue.textContent = driftAngleDeg.toFixed(0) + '°';
     if (driftEnabled) {
-      const diag = Math.hypot(canvas.width, canvas.height);
-      const speed = diag * driftSpeedRel * (showSetupPanel ? driftSetupMultiplier : 1);
-      const angle = (driftAngleDeg % 360) * Math.PI / 180;
-      driftVelX = Math.cos(angle) * speed;
-      driftVelY = Math.sin(angle) * speed;
+      recomputeDriftVelocity();
     }
   });
 }
 if (driftResetButton) {
   driftResetButton.addEventListener('click', () => {
     initializeDrift(canvas.width, canvas.height);
+  });
+}
+if (debugOverlayCheckbox) {
+  debugOverlayCheckbox.addEventListener('change', () => {
+    debugOverlayEnabled = debugOverlayCheckbox.checked;
+    syncBackgroundStyles();
+    updateDebugOverlay();
   });
 }
 
@@ -2572,6 +2709,7 @@ function buildConfigUrl() {
   addBool('runClock', runClock, DEFAULT_runClock);
   addBool('showBg', showBg, DEFAULT_showBg);
   addBool('showMinute', showMinute, DEFAULT_showMinute);
+  addBool('debug', debugOverlayEnabled, DEFAULT_debugOverlay);
 
   // Drift settings
   addBool('driftEnabled', driftEnabled, DEFAULT_driftEnabled);
@@ -2615,11 +2753,6 @@ copyUrlButton.addEventListener('click', () => {
 
 syncControls();
 setModeSectionVisibility();
-
-// Re-run layout on resize to honour outerRel
-window.addEventListener('resize', () => {
-  // Next frame() call will pick up the new size
-});
 </script>
 </body>
 </html>

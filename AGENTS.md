@@ -74,12 +74,12 @@ Svømmeklokke2/
 
 ### Canvas Rendering
 - Uses HTML5 Canvas 2D context
-- Automatically scales to screen size while maintaining aspect ratio
-- Respects `outerRel` parameter for size relative to viewport height
+- Automatically scales to the browser's actual allocated drawing area while maintaining aspect ratio
+- Respects `outerRel` parameter for size relative to drawing-area height
 - High-DPI aware (uses `devicePixelRatio`)
 
 ### URL Parameters (Key Examples)
-- `outerRel`: Clock size relative to screen height (0.2-1.0)
+- `outerRel`: Clock size relative to drawing-area height (0.2-1.0)
 - `showLogo`: Toggle logo visibility (0/1)
 - `logoSizeRel`: Logo size relative to clock radius
 - `showMinute`: Enable minute hand (0/1)
@@ -87,6 +87,7 @@ Svømmeklokke2/
 - `runClock`: Animate clock (0/1)
 - `driftEnabled`: Enable screen drift mode (0/1)
 - `driftSpeedRel`: Drift speed multiplier
+- `debug`: Enable checkerboard + live dimension overlay (0/1)
 - `setupmode`: Show control panel for adjustments (0/1)
 
 ### Time System
