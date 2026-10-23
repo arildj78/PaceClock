@@ -68,31 +68,6 @@
       min-height:0;
       z-index:2;
     }
-    .debugOverlay {
-      position:absolute;
-      inset:0;
-      pointer-events:none;
-      display:none;
-    }
-    #debugCheckerboard {
-      z-index:1;
-      background:
-        linear-gradient(45deg, #080808 25%, transparent 25%),
-        linear-gradient(-45deg, #080808 25%, transparent 25%),
-        linear-gradient(45deg, transparent 75%, #080808 75%),
-        linear-gradient(-45deg, transparent 75%, #080808 75%),
-        #292929;
-      background-size:120px 120px;
-      background-position:0 0, 0 60px, 60px -60px, -60px 0;
-    }
-    #debugDimensions {
-      z-index:3;
-      align-items:center;
-      justify-content:center;
-      color:#00F5FF;
-      font-weight:700;
-      text-shadow:0 0 10px rgba(0, 245, 255, 0.75);
-    }
     .groupTitle {
       font-size:13px;
       text-transform:uppercase;
@@ -573,9 +548,7 @@
   </div>
 
   <div id="rightPanel">
-    <div id="debugCheckerboard" class="debugOverlay"></div>
     <canvas id="clock"></canvas>
-    <div id="debugDimensions" class="debugOverlay"></div>
   </div>
 
 <script src="./clock-color-presets.js"></script>
@@ -621,8 +594,6 @@ const canvas = document.getElementById('clock');
 const ctx = canvas.getContext('2d');
 const leftPanel = document.getElementById('leftPanel');
 const rightPanel = document.getElementById('rightPanel');
-const debugCheckerboard = document.getElementById('debugCheckerboard');
-const debugDimensions = document.getElementById('debugDimensions');
 const swimTabButton = document.getElementById('swimTabButton');
 const wallTabButton = document.getElementById('wallTabButton');
 const copyFromOtherButton = document.getElementById('copyFromOtherButton');
@@ -1114,13 +1085,29 @@ function getDrawingAreaSizeFromPanel() {
 }
 
 function updateDebugOverlay() {
-  const showDebug = !!debugOverlayEnabled;
-  debugCheckerboard.style.display = showDebug ? 'block' : 'none';
-  debugDimensions.style.display = showDebug ? 'flex' : 'none';
-  if (showDebug) {
-    debugDimensions.textContent = `${drawingAreaWidth} x ${drawingAreaHeight}`;
-    debugDimensions.style.fontSize = `${drawingAreaHeight * 0.2}px`;
+  canvas.style.background = debugOverlayEnabled ? 'transparent' : backgroundColor;
+}
+
+function drawDebugCheckerboard() {
+  const squareSize = 60;
+  for (let y = 0; y < drawingAreaHeight; y += squareSize) {
+    for (let x = 0; x < drawingAreaWidth; x += squareSize) {
+      ctx.fillStyle = ((x / squareSize + y / squareSize) % 2 === 0) ? '#292929' : '#080808';
+      ctx.fillRect(x, y, squareSize, squareSize);
+    }
   }
+}
+
+function drawDebugDimensions() {
+  ctx.save();
+  ctx.font = `700 ${drawingAreaHeight * 0.2}px BFont, Arial, sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = '#00F5FF';
+  ctx.shadowColor = 'rgba(0, 245, 255, 0.75)';
+  ctx.shadowBlur = 10;
+  ctx.fillText(`${drawingAreaWidth} x ${drawingAreaHeight}`, drawingAreaWidth / 2, drawingAreaHeight / 2);
+  ctx.restore();
 }
 
 function getCanvasCenterAndRadius() {
@@ -1899,6 +1886,9 @@ function drawCurrentFrame() {
   }
   // Clear full canvas in absolute coordinates
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+  if (debugOverlayEnabled) {
+    drawDebugCheckerboard();
+  }
   updateDrift(canvas.width, canvas.height);
   // Draw one frame of the clock
   // If font just became ready and cache is missing, build it
@@ -1906,6 +1896,9 @@ function drawCurrentFrame() {
   const size = r * 2;
   if (fontReady && !faceCanvas) ensureFaceCache(size, r);
   drawClock();
+  if (debugOverlayEnabled) {
+    drawDebugDimensions();
+  }
 }
 
 function frame() {
