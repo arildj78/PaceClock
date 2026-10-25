@@ -1035,19 +1035,12 @@ bgImage.onload = () => { bgReady = true; };
 // Ensure custom font loads before rendering canvas text (numbers)
 // In production mode, the font may not load via document.fonts.ready if left panel is hidden
 let fontReady = false;
-if (document.fonts && document.fonts.ready) {
-  // Create a dummy element with the custom font to force the browser to load it
-  const dummyEl = document.createElement('span');
-  dummyEl.style.fontFamily = "'BFont', Arial, sans-serif";
-  dummyEl.style.position = 'absolute';
-  dummyEl.style.visibility = 'hidden';
-  dummyEl.textContent = '60';
-  document.body.appendChild(dummyEl);
-  
-  document.fonts.ready.then(() => {
-    fontReady = true;
-    document.body.removeChild(dummyEl);
-  });
+if (document.fonts && document.fonts.load) {
+  // Explicitly request BFont; document.fonts.ready can resolve before the font has been requested
+  const markFontReady = () => { fontReady = true; };
+  document.fonts.load("10px 'BFont'", '0123456789 x').then(markFontReady, markFontReady);
+  // Never keep the clock hidden indefinitely if the font fails to load
+  setTimeout(markFontReady, 3000);
 } else {
   // Fallback: assume font is ready after a delay
   setTimeout(() => { fontReady = true; }, 1000);
@@ -1068,19 +1061,16 @@ function getVFDSettingsHash() {
 let drawingAreaWidth = 0;
 let drawingAreaHeight = 0;
 let driftInitialized = false;
-let panelResizeObserver = null;
-let sizeCheckFrame = 0;
-let sizeCheckGeneration = 0;
-let candidateDrawingAreaWidth = 0;
-let candidateDrawingAreaHeight = 0;
-let consecutiveSizeSamples = 0;
-let animationStarted = false;
+let drawingAreaResizeObserver = null;
+let drawingAreaRevealed = false;
+let initialLayoutWidth = 0;
+let initialLayoutHeight = 0;
+let initialLayoutStableFrames = 0;
 
-function getDrawingAreaSizeFromPanel() {
-  const rect = rightPanel.getBoundingClientRect();
+function getDrawingAreaSize() {
   return {
-    w: rect.width,
-    h: rect.height
+    w: Math.round(canvas.clientWidth),
+    h: Math.round(canvas.clientHeight)
   };
 }
 
@@ -1103,8 +1093,8 @@ function drawDebugDimensions() {
   ctx.font = `700 ${drawingAreaHeight * 0.2}px BFont, Arial, sans-serif`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillStyle = '#FF00FF';
-  ctx.shadowColor = 'rgba(255, 0, 255, 0.75)';
+  ctx.fillStyle = '#00FFFF';
+  ctx.shadowColor = 'rgba(0, 255, 255, 0.75)';
   ctx.shadowBlur = 10;
   ctx.fillText(`${drawingAreaWidth} x ${drawingAreaHeight}`, drawingAreaWidth / 2, drawingAreaHeight / 2);
   ctx.restore();
@@ -1165,86 +1155,89 @@ function clampDriftToBounds(reverseOutwardVelocity) {
   return true;
 }
 
-function commitDrawingAreaSize(width, height) {
-  const sizeChanged = width !== drawingAreaWidth || height !== drawingAreaHeight;
+// Resize the canvas backing store to match its CSS size so the clock never gets stretched.
+// The clock keeps its relative position within the drift range and its relative size.
+function applyDrawingAreaSize(width, height) {
+  if (width <= 0 || height <= 0) return false;
+  if (width === drawingAreaWidth && height === drawingAreaHeight) return false;
+
+  let relX = 0;
+  let relY = 0;
+  if (driftInitialized) {
+    const oldBounds = computeDriftBounds(canvas.width, canvas.height);
+    if (oldBounds && oldBounds.maxX > 0) relX = driftOffsetX / oldBounds.maxX;
+    if (oldBounds && oldBounds.maxY > 0) relY = driftOffsetY / oldBounds.maxY;
+  }
+  const velSignX = Math.sign(driftVelX);
+  const velSignY = Math.sign(driftVelY);
+
   drawingAreaWidth = width;
   drawingAreaHeight = height;
+  canvas.width = width;
+  canvas.height = height;
 
-  if (sizeChanged) {
-    canvas.width = width;
-    canvas.height = height;
-    recomputeDriftVelocity();
-    if (!driftInitialized) {
-      initializeDrift(width, height);
-      driftInitialized = true;
-    } else {
-      clampDriftToBounds(true);
-    }
+  if (!driftInitialized) {
+    initializeDrift(width, height);
+    driftInitialized = true;
+    return true;
   }
 
-  updateDebugOverlay();
-  drawCurrentFrame();
-  rightPanel.style.visibility = 'visible';
+  recomputeDriftVelocity();
+  if (velSignX) driftVelX = Math.abs(driftVelX) * velSignX;
+  if (velSignY) driftVelY = Math.abs(driftVelY) * velSignY;
 
-  if (!animationStarted) {
-    animationStarted = true;
-    requestAnimationFrame(frame);
+  const newBounds = computeDriftBounds(width, height);
+  if (newBounds && newBounds.maxX > 0 && newBounds.maxY > 0) {
+    driftOffsetX = relX * newBounds.maxX;
+    driftOffsetY = relY * newBounds.maxY;
   }
+  clampDriftToBounds(true);
+  return true;
 }
 
-function sampleDrawingArea(generation) {
-  sizeCheckFrame = 0;
-  if (generation !== sizeCheckGeneration) {
-    requestDrawingAreaCheck();
-    return;
-  }
+function syncDrawingAreaSize() {
+  const size = getDrawingAreaSize();
+  return applyDrawingAreaSize(size.w, size.h);
+}
 
-  const size = getDrawingAreaSizeFromPanel();
-  if (size.w <= 0 || size.h <= 0) {
-    candidateDrawingAreaWidth = 0;
-    candidateDrawingAreaHeight = 0;
-    consecutiveSizeSamples = 0;
-    sizeCheckFrame = requestAnimationFrame(() => sampleDrawingArea(generation));
-    return;
-  }
-
-  if (size.w === candidateDrawingAreaWidth && size.h === candidateDrawingAreaHeight) {
-    consecutiveSizeSamples += 1;
+// Before the first reveal, wait until the layout has been stable for a few frames
+// and the number font has loaded, so the first visible frame is already correct.
+function waitForInitialLayout() {
+  const size = getDrawingAreaSize();
+  if (size.w > 0 && size.h > 0 && size.w === initialLayoutWidth && size.h === initialLayoutHeight) {
+    initialLayoutStableFrames += 1;
   } else {
-    candidateDrawingAreaWidth = size.w;
-    candidateDrawingAreaHeight = size.h;
-    consecutiveSizeSamples = 1;
+    initialLayoutWidth = size.w;
+    initialLayoutHeight = size.h;
+    initialLayoutStableFrames = (size.w > 0 && size.h > 0) ? 1 : 0;
   }
 
-  if (consecutiveSizeSamples >= 3) {
-    const acceptedWidth = Math.max(1, Math.round(size.w));
-    const acceptedHeight = Math.max(1, Math.round(size.h));
-    if (acceptedWidth !== drawingAreaWidth || acceptedHeight !== drawingAreaHeight) {
-      commitDrawingAreaSize(acceptedWidth, acceptedHeight);
-    }
+  if (initialLayoutStableFrames >= 3 && fontReady) {
+    applyDrawingAreaSize(size.w, size.h);
+    updateDebugOverlay();
+    drawCurrentFrame();
+    rightPanel.style.visibility = 'visible';
+    drawingAreaRevealed = true;
+    requestAnimationFrame(frame);
     return;
   }
-
-  sizeCheckFrame = requestAnimationFrame(() => sampleDrawingArea(generation));
+  requestAnimationFrame(waitForInitialLayout);
 }
 
-function requestDrawingAreaCheck() {
-  sizeCheckGeneration += 1;
-  candidateDrawingAreaWidth = 0;
-  candidateDrawingAreaHeight = 0;
-  consecutiveSizeSamples = 0;
-  if (!sizeCheckFrame) {
-    const generation = sizeCheckGeneration;
-    sizeCheckFrame = requestAnimationFrame(() => sampleDrawingArea(generation));
+function onDrawingAreaResize() {
+  // ResizeObserver callbacks run after layout but before paint, so redrawing here avoids a stretched frame
+  if (drawingAreaRevealed && syncDrawingAreaSize()) {
+    drawCurrentFrame();
   }
 }
 
 function setupPanelResizeObserver() {
   if (typeof ResizeObserver !== 'undefined') {
-    panelResizeObserver = new ResizeObserver(requestDrawingAreaCheck);
-    panelResizeObserver.observe(rightPanel);
+    drawingAreaResizeObserver = new ResizeObserver(onDrawingAreaResize);
+    drawingAreaResizeObserver.observe(rightPanel);
+    drawingAreaResizeObserver.observe(canvas);
   }
-  window.addEventListener('resize', requestDrawingAreaCheck);
+  window.addEventListener('resize', onDrawingAreaResize);
 }
 
 function initializeDrift(w, h) {
@@ -1884,6 +1877,7 @@ function drawCurrentFrame() {
   if (canvas.width <= 0 || canvas.height <= 0) {
     return;
   }
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
   // Clear full canvas in absolute coordinates
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   if (debugOverlayEnabled) {
@@ -1902,14 +1896,13 @@ function drawCurrentFrame() {
 }
 
 function frame() {
-  if (drawingAreaWidth > 0 && drawingAreaHeight > 0) {
-    drawCurrentFrame();
-  }
+  syncDrawingAreaSize();
+  drawCurrentFrame();
   requestAnimationFrame(frame);
 }
 
 setupPanelResizeObserver();
-requestDrawingAreaCheck();
+requestAnimationFrame(waitForInitialLayout);
 
 // ===== Slider wiring (all relative parameters) =====
 
