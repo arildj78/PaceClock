@@ -18,14 +18,14 @@ Only controls relevant to the selected mode are shown.
 Parameter                 Default     Description
 ========================  ==========  ==========================================
 ``digitalStyle``          clean       Design (see choices below)
-``digitalFont``           mono        Font for text-based designs (see below)
-``digitalShowSeconds``    1           HH:MM:SS when on, HH:MM when off
-``digitalScaleRel``       0.9         Size relative to available area (0.2-1)
-``digitalSpacingRel``     1           Digit spacing multiplier (-4 to 4)
+``digitalFont``           rounded     Font for text-based designs (see below)
+``digitalShowSeconds``    0           HH:MM:SS when on, HH:MM when off
+``digitalScaleRel``       0.712       Size relative to available area (0.2-1)
+``digitalSpacingRel``     -1.4        Digit spacing multiplier (-4 to 4)
 ``digitalYOffsetRel``     0           Vertical position (-0.5 top to 0.5 bottom)
 ``digitalGlowRel``        0           Glow intensity (0-1)
 ``digitalManualTime``     12:00:00    Preview time (HH:MM:SS) when ``runClock=0``
-``vfdColor``              #00b7ff     Digit color (hex code)
+``vfdColor``              #5dd9f0     Digit color (hex code)
 ``backgroundColor``       #000000     Background color (hex code)
 ========================  ==========  ==========================================
 
@@ -40,11 +40,11 @@ Design choices:
 
 Font choices for Clean, Outline, and Split-flap:
 
-* ``mono``: system monospace (default).
+* ``mono``: system monospace.
 * ``sans``: Arial / Helvetica.
 * ``serif``: Georgia / Times New Roman.
 * ``condensed``: Impact / Arial Narrow.
-* ``rounded``: Trebuchet MS / Verdana.
+* ``rounded``: Trebuchet MS / Verdana (default).
 * ``club``: the bundled BFont.
 
 System font availability varies by device; each choice has a fallback.
@@ -62,7 +62,7 @@ Size is fitted using the original spacing, independently of this control.
 Wide spacing can extend beyond the drawing area; reduce Size to fit it.
 Spacing is retained when switching modes and included in shared URLs.
 
-Colon spacing (``digitalColonPaddingRel``, default 1, range -2 to 4) adds equal
+Colon spacing (``digitalColonPaddingRel``, default -0.39, range -2 to 4) adds equal
 padding on each side of each separator, independently of digit spacing.
 In digit-cell units, a gap between adjacent digits is ``8 * digitalSpacingRel``
 and a gap beside a colon is ``8 * digitalColonPaddingRel``.
@@ -75,6 +75,11 @@ to move only the separators up (negative) or down
 (positive), relative to the 100-unit digit cell height. Both controls apply to
 every design and both separators when seconds are shown. They do not change
 glyph size or stroke thickness and are retained in mode settings and shared URLs.
+
+Digital mode defaults to an edge margin (``driftMarginRel``) of -0.052 and
+the Wall Clock color palette, including cyan digits. These defaults apply only
+to the digital clock; Swim and Wall defaults are unchanged. Explicit URL
+parameters override them. ``clock.html?mode=digital`` loads this configuration.
 
 Color presets, Run clock, screen-saver drift, debug overlay, and Copy URL work
 in digital mode too. Turn off Run clock to edit the manual preview time.

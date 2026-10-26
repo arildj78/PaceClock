@@ -984,6 +984,16 @@ const WALL_MODE_COLORS = {
   wallSecondColor: '#4ba8c8'
 };
 
+const DIGITAL_MODE_DEFAULTS = {
+  ...WALL_MODE_COLORS,
+  digitalFont: 'rounded',
+  digitalShowSeconds: false,
+  digitalScaleRel: 0.712,
+  digitalSpacingRel: -1.4,
+  digitalColonPaddingRel: -0.39,
+  driftMarginRel: -0.052
+};
+
 // Live values (start at defaults)
 let outerRel            = DEFAULT_outerRel;
 let minorInnerRel       = DEFAULT_minorInnerRel;
@@ -1162,10 +1172,13 @@ for (const [key, value] of Object.entries(WALL_MODE_COLORS)) {
   }
 }
 
-// If page loads in wall mode, apply wall defaults to current state
-if (currentMode === MODE_WALL) {
-  applyStateSnapshot(modeStates[MODE_WALL]);
+for (const [key, value] of Object.entries(DIGITAL_MODE_DEFAULTS)) {
+  if (!params.has(key)) {
+    modeStates[MODE_DIGITAL][key] = value;
+  }
 }
+
+applyStateSnapshot(modeStates[currentMode]);
 
 // Reference background image for local use (ignored if not found)
 const bgImage = new Image();
@@ -3084,9 +3097,11 @@ if (debugOverlayCheckbox) {
 function buildConfigUrl() {
   const base = window.location.origin + window.location.pathname;
   const qs = new URLSearchParams();
+  const modeDefaults = currentMode === MODE_DIGITAL ? DIGITAL_MODE_DEFAULTS
+    : currentMode === MODE_WALL ? WALL_MODE_COLORS : {};
   const modeDefault = (name, fallback) => (
-    currentMode === MODE_WALL && Object.prototype.hasOwnProperty.call(WALL_MODE_COLORS, name)
-      ? WALL_MODE_COLORS[name]
+    Object.prototype.hasOwnProperty.call(modeDefaults, name)
+      ? modeDefaults[name]
       : fallback
   );
 
@@ -3110,11 +3125,11 @@ function buildConfigUrl() {
     qs.set('mode', currentMode);
   }
   if (digitalStyle !== DEFAULT_digitalStyle) qs.set('digitalStyle', digitalStyle);
-  if (digitalFont !== DEFAULT_digitalFont) qs.set('digitalFont', digitalFont);
-  addBool('digitalShowSeconds', digitalShowSeconds, DEFAULT_digitalShowSeconds);
-  addFloat('digitalScaleRel', digitalScaleRel, DEFAULT_digitalScaleRel);
-  addFloat('digitalSpacingRel', digitalSpacingRel, DEFAULT_digitalSpacingRel);
-  addFloat('digitalColonPaddingRel', digitalColonPaddingRel, DEFAULT_digitalColonPaddingRel);
+  if (digitalFont !== modeDefault('digitalFont', DEFAULT_digitalFont)) qs.set('digitalFont', digitalFont);
+  addBool('digitalShowSeconds', digitalShowSeconds, modeDefault('digitalShowSeconds', DEFAULT_digitalShowSeconds));
+  addFloat('digitalScaleRel', digitalScaleRel, modeDefault('digitalScaleRel', DEFAULT_digitalScaleRel));
+  addFloat('digitalSpacingRel', digitalSpacingRel, modeDefault('digitalSpacingRel', DEFAULT_digitalSpacingRel));
+  addFloat('digitalColonPaddingRel', digitalColonPaddingRel, modeDefault('digitalColonPaddingRel', DEFAULT_digitalColonPaddingRel));
   addFloat('digitalColonYOffsetRel', digitalColonYOffsetRel, DEFAULT_digitalColonYOffsetRel);
   addFloat('digitalYOffsetRel', digitalYOffsetRel, DEFAULT_digitalYOffsetRel);
   addFloat('digitalGlowRel', digitalGlowRel, DEFAULT_digitalGlowRel);
@@ -3177,7 +3192,7 @@ function buildConfigUrl() {
   // Drift settings
   addBool('driftEnabled', driftEnabled, DEFAULT_driftEnabled);
   addFloat('driftSpeedRel', driftSpeedRel, DEFAULT_driftSpeedRel, 7);
-  addFloat('driftMarginRel', driftMarginRel, DEFAULT_driftMarginRel, 3);
+  addFloat('driftMarginRel', driftMarginRel, modeDefault('driftMarginRel', DEFAULT_driftMarginRel), 3);
   addFloat('driftAngleDeg', driftAngleDeg, DEFAULT_driftAngleDeg, 0);
   // Omit driftSetupMultiplier from shared URLs (setup-only control)
 
