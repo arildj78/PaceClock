@@ -3,6 +3,12 @@ Screen Saver
 
 Prevent screen burn-in by slowly drifting the clock position across the screen.
 
+The Edge margin slider ranges from -0.2 to 0.2, as a fraction of the smaller
+canvas dimension. Zero allows the clock to reach the screen edges. Negative
+values allow drift beyond the edges and may clip part of the clock; positive
+values keep it farther inside the screen. This applies to all three clock modes.
+The margin is preserved in shared URLs.
+
 ========================  ===========  =============================================
 Parameter                 Default      Description
 ========================  ===========  =============================================

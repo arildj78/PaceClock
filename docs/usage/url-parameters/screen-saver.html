@@ -151,6 +151,11 @@
   <section id="screen-saver">
 <h1>Screen Saver<a class="headerlink" href="#screen-saver" title="Link to this heading"></a></h1>
 <p>Prevent screen burn-in by slowly drifting the clock position across the screen.</p>
+<p>The Edge margin slider ranges from -0.2 to 0.2, as a fraction of the smaller
+canvas dimension. Zero allows the clock to reach the screen edges. Negative
+values allow drift beyond the edges and may clip part of the clock; positive
+values keep it farther inside the screen. This applies to all three clock modes.
+The margin is preserved in shared URLs.</p>
 <table class="docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>Parameter</p></th>
