@@ -375,6 +375,12 @@
           <span class="value" id="digitalScaleRelValue"></span>
         </label>
         <label>
+          Character spacing (kerning multiplier)
+          <input id="digitalSpacingRelSlider" type="range" min="-2" max="4" step="0.01" />
+          <span class="value" id="digitalSpacingRelValue"></span>
+          <span class="value">Spacing only; reduce Size if wider spacing extends beyond the screen.</span>
+        </label>
+        <label>
           Vertical position (-0.5 top, 0 center, 0.5 bottom)
           <input id="digitalYOffsetRelSlider" type="range" min="-0.5" max="0.5" step="0.01" />
           <span class="value" id="digitalYOffsetRelValue"></span>
@@ -765,6 +771,7 @@ function getCurrentStateSnapshot() {
     digitalFont,
     digitalShowSeconds,
     digitalScaleRel,
+    digitalSpacingRel,
     digitalYOffsetRel,
     digitalGlowRel,
     digitalManualTime,
@@ -838,6 +845,7 @@ function applyStateSnapshot(state) {
   digitalFont = state.digitalFont;
   digitalShowSeconds = state.digitalShowSeconds;
   digitalScaleRel = state.digitalScaleRel;
+  digitalSpacingRel = state.digitalSpacingRel;
   digitalYOffsetRel = state.digitalYOffsetRel;
   digitalGlowRel = state.digitalGlowRel;
   digitalManualTime = state.digitalManualTime;
@@ -920,6 +928,7 @@ const DIGITAL_FONTS = {
 };
 const DEFAULT_digitalShowSeconds = true;
 const DEFAULT_digitalScaleRel    = 0.9;
+const DEFAULT_digitalSpacingRel  = 1;
 const DEFAULT_digitalYOffsetRel  = 0;
 const DEFAULT_digitalGlowRel     = 0;
 const DEFAULT_digitalManualTime  = '12:00:00';
@@ -1030,6 +1039,7 @@ let digitalStyle       = DEFAULT_digitalStyle;
 let digitalFont        = DEFAULT_digitalFont;
 let digitalShowSeconds = DEFAULT_digitalShowSeconds;
 let digitalScaleRel    = DEFAULT_digitalScaleRel;
+let digitalSpacingRel  = DEFAULT_digitalSpacingRel;
 let digitalYOffsetRel  = DEFAULT_digitalYOffsetRel;
 let digitalGlowRel     = DEFAULT_digitalGlowRel;
 let digitalManualTime  = DEFAULT_digitalManualTime;
@@ -1094,6 +1104,7 @@ if (Object.prototype.hasOwnProperty.call(DIGITAL_FONTS, requestedDigitalFont)) {
 }
 digitalShowSeconds = paramBool('digitalShowSeconds', digitalShowSeconds);
 digitalScaleRel = Math.max(0.2, Math.min(1, paramFloat('digitalScaleRel', digitalScaleRel)));
+digitalSpacingRel = Math.max(-2, Math.min(4, paramFloat('digitalSpacingRel', digitalSpacingRel)));
 digitalYOffsetRel = Math.max(-0.5, Math.min(0.5, paramFloat('digitalYOffsetRel', digitalYOffsetRel)));
 digitalGlowRel = Math.max(0, Math.min(1, paramFloat('digitalGlowRel', digitalGlowRel)));
 const requestedManualTime = params.get('digitalManualTime');
@@ -1934,14 +1945,17 @@ function getDigitalTimeText(now = new Date()) {
 }
 
 function getDigitalLayout(w, h) {
-  const unitsWidth = digitalShowSeconds ? 464 : 296;
+  const gap = 8 * digitalSpacingRel;
+  const unitsWidth = digitalShowSeconds ? 408 + 7 * gap : 264 + 4 * gap;
+  const baseUnitsWidth = digitalShowSeconds ? 464 : 296;
   // Reserve space for the glow inside both the fitted display and its drift bounds.
   const padding = 4 + digitalGlowRel * 24;
-  const scale = Math.min(w * digitalScaleRel / (unitsWidth + padding * 2),
+  // Fit at the original spacing so kerning never changes glyph size or stroke thickness.
+  const scale = Math.min(w * digitalScaleRel / (baseUnitsWidth + padding * 2),
                          h * digitalScaleRel / (100 + padding * 2));
   const width = (unitsWidth + padding * 2) * scale;
   const height = (100 + padding * 2) * scale;
-  return { width, height, scale, padding, offsetY: (h - height) * digitalYOffsetRel };
+  return { width, height, scale, padding, gap, offsetY: (h - height) * digitalYOffsetRel };
 }
 
 const DIGITAL_SEGMENTS = [
@@ -1960,7 +1974,7 @@ let lastDigitalSettings = '';
 function drawDigitalClock() {
   const text = getDigitalTimeText();
   const layout = getDigitalLayout(canvas.width, canvas.height);
-  const settings = [text, digitalStyle, digitalFont, fontReady, vfdColor, digitalGlowRel, layout.width, layout.height].join('|');
+  const settings = [text, digitalStyle, digitalFont, fontReady, vfdColor, digitalGlowRel, digitalSpacingRel, layout.width, layout.height].join('|');
   if (!digitalCanvas || settings !== lastDigitalSettings) {
     if (!digitalCanvas) digitalCanvas = document.createElement('canvas');
     digitalCanvas.width = Math.ceil(layout.width);
@@ -2040,7 +2054,7 @@ function drawDigitalClock() {
           localCtx.fill();
         }
       }
-      x += width + 8;
+      x += width + layout.gap;
     }
     lastDigitalSettings = settings;
     canvas.setAttribute('role', 'img');
@@ -2288,6 +2302,7 @@ const digitalShowSecondsCheckbox = document.getElementById('digitalShowSecondsCh
 const digitalManualTimeInput = document.getElementById('digitalManualTimeInput');
 const digitalSliders = [
   ['digitalScaleRel', document.getElementById('digitalScaleRelSlider'), document.getElementById('digitalScaleRelValue')],
+  ['digitalSpacingRel', document.getElementById('digitalSpacingRelSlider'), document.getElementById('digitalSpacingRelValue')],
   ['digitalYOffsetRel', document.getElementById('digitalYOffsetRelSlider'), document.getElementById('digitalYOffsetRelValue')],
   ['digitalGlowRel', document.getElementById('digitalGlowRelSlider'), document.getElementById('digitalGlowRelValue')]
 ];
@@ -2380,7 +2395,7 @@ function syncControls() {
   digitalShowSecondsCheckbox.checked = digitalShowSeconds;
   digitalManualTimeInput.value = digitalManualTime;
   digitalManualTimeInput.disabled = runClock;
-  const digitalValues = { digitalScaleRel, digitalYOffsetRel, digitalGlowRel };
+  const digitalValues = { digitalScaleRel, digitalSpacingRel, digitalYOffsetRel, digitalGlowRel };
   for (const [name, slider, value] of digitalSliders) {
     slider.value = digitalValues[name];
     value.textContent = digitalValues[name].toFixed(3);
@@ -2652,6 +2667,7 @@ for (const [name, slider, value] of digitalSliders) {
   slider.addEventListener('input', () => {
     const next = Number(slider.value);
     if (name === 'digitalScaleRel') digitalScaleRel = next;
+    if (name === 'digitalSpacingRel') digitalSpacingRel = next;
     if (name === 'digitalYOffsetRel') digitalYOffsetRel = next;
     if (name === 'digitalGlowRel') digitalGlowRel = next;
     value.textContent = next.toFixed(3);
@@ -3063,6 +3079,7 @@ function buildConfigUrl() {
   if (digitalFont !== DEFAULT_digitalFont) qs.set('digitalFont', digitalFont);
   addBool('digitalShowSeconds', digitalShowSeconds, DEFAULT_digitalShowSeconds);
   addFloat('digitalScaleRel', digitalScaleRel, DEFAULT_digitalScaleRel);
+  addFloat('digitalSpacingRel', digitalSpacingRel, DEFAULT_digitalSpacingRel);
   addFloat('digitalYOffsetRel', digitalYOffsetRel, DEFAULT_digitalYOffsetRel);
   addFloat('digitalGlowRel', digitalGlowRel, DEFAULT_digitalGlowRel);
   if (digitalManualTime !== DEFAULT_digitalManualTime) qs.set('digitalManualTime', digitalManualTime);

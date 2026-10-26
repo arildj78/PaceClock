@@ -21,6 +21,7 @@ Parameter                 Default     Description
 ``digitalFont``           mono        Font for text-based designs (see below)
 ``digitalShowSeconds``    1           HH:MM:SS when on, HH:MM when off
 ``digitalScaleRel``       0.9         Size relative to available area (0.2-1)
+``digitalSpacingRel``     1           Digit spacing multiplier (-2 to 4)
 ``digitalYOffsetRel``     0           Vertical position (-0.5 top to 0.5 bottom)
 ``digitalGlowRel``        0           Glow intensity (0-1)
 ``digitalManualTime``     12:00:00    Preview time (HH:MM:SS) when ``runClock=0``
@@ -51,10 +52,20 @@ No external font service is used. Fonts are fitted within fixed digit cells
 to keep the display stable as the time changes. Seven-segment and Dot-matrix
 use drawn shapes, so the font selector is disabled for those designs.
 
+The Character spacing (kerning) slider works in all five designs and adjusts the gaps between
+characters, including around colons. Zero removes the extra gap, 1 preserves
+the original spacing, and 4 gives four times the extra gap. Negative values down
+to -2 pull character cells closer together and can overlap them. Spacing only moves
+characters: glyph size, height, and stroke thickness remain unchanged.
+Size is fitted using the original spacing, independently of this control.
+Wide spacing can extend beyond the drawing area; reduce Size to fit it.
+Spacing is retained when switching modes and included in shared URLs.
+
 Color presets, Run clock, screen-saver drift, debug overlay, and Copy URL work
 in digital mode too. Turn off Run clock to edit the manual preview time.
-The display fits both the width and height of its drawing area. Drift bounds
-account for its rectangular shape, vertical position, and glow.
+At the original spacing, the display fits both the width and height of its drawing
+area. Drift bounds account for the actual character spacing, rectangular shape,
+vertical position, and glow. If the display is too wide to drift, it stays centered.
 
 The generated share URL preserves the selected mode and its settings, but omits
 ``setupmode``. ``vfdEnabled`` and the other VFD geometry/test settings below
