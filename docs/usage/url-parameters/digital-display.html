@@ -186,7 +186,7 @@ Only controls relevant to the selected mode are shown.</p>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">digitalSpacingRel</span></code></p></td>
 <td><p>1</p></td>
-<td><p>Digit spacing multiplier (-2 to 4)</p></td>
+<td><p>Digit spacing multiplier (-4 to 4)</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">digitalYOffsetRel</span></code></p></td>
 <td><p>0</p></td>
@@ -236,15 +236,17 @@ use drawn shapes, so the font selector is disabled for those designs.</p>
 only between adjacent digits within each HH, MM, or SS pair.
 It does not affect the gaps beside colons. Zero removes the extra gap, 1 preserves
 the original spacing, and 4 gives four times the extra gap. Negative values down
-to -2 pull character cells closer together and can overlap them. Spacing only moves
+to -4 pull character cells closer together and can overlap them. Spacing only moves
 characters: glyph size, height, and stroke thickness remain unchanged.
 Size is fitted using the original spacing, independently of this control.
 Wide spacing can extend beyond the drawing area; reduce Size to fit it.
 Spacing is retained when switching modes and included in shared URLs.</p>
-<p>Colon spacing (<code class="docutils literal notranslate"><span class="pre">digitalColonPaddingRel</span></code>, default 1, range 0-4) adds equal
+<p>Colon spacing (<code class="docutils literal notranslate"><span class="pre">digitalColonPaddingRel</span></code>, default 1, range -2 to 4) adds equal
 padding on each side of each separator, independently of digit spacing.
 In digit-cell units, a gap between adjacent digits is <code class="docutils literal notranslate"><span class="pre">8</span> <span class="pre">*</span> <span class="pre">digitalSpacingRel</span></code>
 and a gap beside a colon is <code class="docutils literal notranslate"><span class="pre">8</span> <span class="pre">*</span> <span class="pre">digitalColonPaddingRel</span></code>.
+Negative colon spacing pulls separators closer to the neighboring digits and
+can overlap them.
 Neither slider affects the other type of gap. Unlike the Swim Clock’s additive
 VFD spacing, standalone digital spacing uses separate gaps for digits and colons.
 Use Colon vertical offset (<code class="docutils literal notranslate"><span class="pre">digitalColonYOffsetRel</span></code>, default 0, range -0.1 to 0.1)

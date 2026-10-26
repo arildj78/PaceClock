@@ -21,7 +21,7 @@ Parameter                 Default     Description
 ``digitalFont``           mono        Font for text-based designs (see below)
 ``digitalShowSeconds``    1           HH:MM:SS when on, HH:MM when off
 ``digitalScaleRel``       0.9         Size relative to available area (0.2-1)
-``digitalSpacingRel``     1           Digit spacing multiplier (-2 to 4)
+``digitalSpacingRel``     1           Digit spacing multiplier (-4 to 4)
 ``digitalYOffsetRel``     0           Vertical position (-0.5 top to 0.5 bottom)
 ``digitalGlowRel``        0           Glow intensity (0-1)
 ``digitalManualTime``     12:00:00    Preview time (HH:MM:SS) when ``runClock=0``
@@ -56,16 +56,18 @@ The Digit spacing (kerning) slider works in all five designs and adjusts the gap
 only between adjacent digits within each HH, MM, or SS pair.
 It does not affect the gaps beside colons. Zero removes the extra gap, 1 preserves
 the original spacing, and 4 gives four times the extra gap. Negative values down
-to -2 pull character cells closer together and can overlap them. Spacing only moves
+to -4 pull character cells closer together and can overlap them. Spacing only moves
 characters: glyph size, height, and stroke thickness remain unchanged.
 Size is fitted using the original spacing, independently of this control.
 Wide spacing can extend beyond the drawing area; reduce Size to fit it.
 Spacing is retained when switching modes and included in shared URLs.
 
-Colon spacing (``digitalColonPaddingRel``, default 1, range 0-4) adds equal
+Colon spacing (``digitalColonPaddingRel``, default 1, range -2 to 4) adds equal
 padding on each side of each separator, independently of digit spacing.
 In digit-cell units, a gap between adjacent digits is ``8 * digitalSpacingRel``
 and a gap beside a colon is ``8 * digitalColonPaddingRel``.
+Negative colon spacing pulls separators closer to the neighboring digits and
+can overlap them.
 Neither slider affects the other type of gap. Unlike the Swim Clock's additive
 VFD spacing, standalone digital spacing uses separate gaps for digits and colons.
 Use Colon vertical offset (``digitalColonYOffsetRel``, default 0, range -0.1 to 0.1)
