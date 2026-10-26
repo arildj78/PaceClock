@@ -595,9 +595,10 @@
           <span class="value" id="driftAngleDegValue"></span>
         </label>
         <label>
-          Edge margin (0–0.2)
-          <input id="driftMarginRelSlider" type="range" min="0" max="0.2" step="0.001" />
+          Edge margin (-0.2 to 0.2)
+          <input id="driftMarginRelSlider" type="range" min="-0.2" max="0.2" step="0.001" />
           <span class="value" id="driftMarginRelValue"></span>
+          <span class="value">Negative margins allow drift beyond the screen edges and may clip the clock.</span>
         </label>
         <label>
           Setup speed multiplier
@@ -3047,6 +3048,7 @@ if (driftMarginRelSlider) {
   driftMarginRelSlider.addEventListener('input', () => {
     driftMarginRel = parseFloat(driftMarginRelSlider.value);
     driftMarginRelValue.textContent = driftMarginRel.toFixed(3);
+    recomputeDriftVelocity();
     clampDriftToBounds(true);
   });
 }
