@@ -173,19 +173,19 @@ Only controls relevant to the selected mode are shown.</p>
 <td><p>Design (see choices below)</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">digitalFont</span></code></p></td>
-<td><p>mono</p></td>
+<td><p>rounded</p></td>
 <td><p>Font for text-based designs (see below)</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">digitalShowSeconds</span></code></p></td>
-<td><p>1</p></td>
+<td><p>0</p></td>
 <td><p>HH:MM:SS when on, HH:MM when off</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">digitalScaleRel</span></code></p></td>
-<td><p>0.9</p></td>
+<td><p>0.712</p></td>
 <td><p>Size relative to available area (0.2-1)</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">digitalSpacingRel</span></code></p></td>
-<td><p>1</p></td>
+<td><p>-1.4</p></td>
 <td><p>Digit spacing multiplier (-4 to 4)</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">digitalYOffsetRel</span></code></p></td>
@@ -201,7 +201,7 @@ Only controls relevant to the selected mode are shown.</p>
 <td><p>Preview time (HH:MM:SS) when <code class="docutils literal notranslate"><span class="pre">runClock=0</span></code></p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">vfdColor</span></code></p></td>
-<td><p>#00b7ff</p></td>
+<td><p>#5dd9f0</p></td>
 <td><p>Digit color (hex code)</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">backgroundColor</span></code></p></td>
@@ -221,11 +221,11 @@ This is a static visual treatment, not a flip animation.</p></li>
 </ul>
 <p>Font choices for Clean, Outline, and Split-flap:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">mono</span></code>: system monospace (default).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mono</span></code>: system monospace.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">sans</span></code>: Arial / Helvetica.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">serif</span></code>: Georgia / Times New Roman.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">condensed</span></code>: Impact / Arial Narrow.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">rounded</span></code>: Trebuchet MS / Verdana.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">rounded</span></code>: Trebuchet MS / Verdana (default).</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">club</span></code>: the bundled BFont.</p></li>
 </ul>
 <p>System font availability varies by device; each choice has a fallback.
@@ -241,7 +241,7 @@ characters: glyph size, height, and stroke thickness remain unchanged.
 Size is fitted using the original spacing, independently of this control.
 Wide spacing can extend beyond the drawing area; reduce Size to fit it.
 Spacing is retained when switching modes and included in shared URLs.</p>
-<p>Colon spacing (<code class="docutils literal notranslate"><span class="pre">digitalColonPaddingRel</span></code>, default 1, range -2 to 4) adds equal
+<p>Colon spacing (<code class="docutils literal notranslate"><span class="pre">digitalColonPaddingRel</span></code>, default -0.39, range -2 to 4) adds equal
 padding on each side of each separator, independently of digit spacing.
 In digit-cell units, a gap between adjacent digits is <code class="docutils literal notranslate"><span class="pre">8</span> <span class="pre">*</span> <span class="pre">digitalSpacingRel</span></code>
 and a gap beside a colon is <code class="docutils literal notranslate"><span class="pre">8</span> <span class="pre">*</span> <span class="pre">digitalColonPaddingRel</span></code>.
@@ -254,6 +254,10 @@ to move only the separators up (negative) or down
 (positive), relative to the 100-unit digit cell height. Both controls apply to
 every design and both separators when seconds are shown. They do not change
 glyph size or stroke thickness and are retained in mode settings and shared URLs.</p>
+<p>Digital mode defaults to an edge margin (<code class="docutils literal notranslate"><span class="pre">driftMarginRel</span></code>) of -0.052 and
+the Wall Clock color palette, including cyan digits. These defaults apply only
+to the digital clock; Swim and Wall defaults are unchanged. Explicit URL
+parameters override them. <code class="docutils literal notranslate"><span class="pre">clock.html?mode=digital</span></code> loads this configuration.</p>
 <p>Color presets, Run clock, screen-saver drift, debug overlay, and Copy URL work
 in digital mode too. Turn off Run clock to edit the manual preview time.
 At the original spacing, the display fits both the width and height of its drawing
