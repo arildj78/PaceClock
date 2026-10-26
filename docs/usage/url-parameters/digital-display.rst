@@ -52,14 +52,27 @@ No external font service is used. Fonts are fitted within fixed digit cells
 to keep the display stable as the time changes. Seven-segment and Dot-matrix
 use drawn shapes, so the font selector is disabled for those designs.
 
-The Character spacing (kerning) slider works in all five designs and adjusts the gaps between
-characters, including around colons. Zero removes the extra gap, 1 preserves
+The Digit spacing (kerning) slider works in all five designs and adjusts the gaps
+between adjacent digits. Zero removes the extra gap, 1 preserves
 the original spacing, and 4 gives four times the extra gap. Negative values down
 to -2 pull character cells closer together and can overlap them. Spacing only moves
 characters: glyph size, height, and stroke thickness remain unchanged.
 Size is fitted using the original spacing, independently of this control.
 Wide spacing can extend beyond the drawing area; reduce Size to fit it.
 Spacing is retained when switching modes and included in shared URLs.
+
+Colon spacing (``digitalColonPaddingRel``, default 1, range 0-4) fine-tunes equal
+padding on each side of each separator. Above the original digit spacing of 1,
+colon gaps also grow by the same amount as digit gaps, keeping the time groups
+balanced. At digit spacing 1 or below, the colon padding stays unchanged,
+preventing tight or negative kerning from squeezing separators into digits.
+In digit-cell units, each colon gap is
+``8 * digitalColonPaddingRel + max(0, 8 * (digitalSpacingRel - 1))``.
+Use Colon vertical offset (``digitalColonYOffsetRel``, default 0, range -0.1 to 0.1)
+to move only the separators up (negative) or down
+(positive), relative to the 100-unit digit cell height. Both controls apply to
+every design and both separators when seconds are shown. They do not change
+glyph size or stroke thickness and are retained in mode settings and shared URLs.
 
 Color presets, Run clock, screen-saver drift, debug overlay, and Copy URL work
 in digital mode too. Turn off Run clock to edit the manual preview time.

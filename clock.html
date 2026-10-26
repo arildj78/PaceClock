@@ -375,10 +375,21 @@
           <span class="value" id="digitalScaleRelValue"></span>
         </label>
         <label>
-          Character spacing (kerning multiplier)
+          Digit spacing (kerning multiplier)
           <input id="digitalSpacingRelSlider" type="range" min="-2" max="4" step="0.01" />
           <span class="value" id="digitalSpacingRelValue"></span>
           <span class="value">Spacing only; reduce Size if wider spacing extends beyond the screen.</span>
+        </label>
+        <label>
+          Colon spacing (each side)
+          <input id="digitalColonPaddingRelSlider" type="range" min="0" max="4" step="0.01" />
+          <span class="value" id="digitalColonPaddingRelValue"></span>
+          <span class="value">Fine-tunes colon gaps; wider digit spacing also expands them automatically.</span>
+        </label>
+        <label>
+          Colon vertical offset (- up, + down)
+          <input id="digitalColonYOffsetRelSlider" type="range" min="-0.1" max="0.1" step="0.005" />
+          <span class="value" id="digitalColonYOffsetRelValue"></span>
         </label>
         <label>
           Vertical position (-0.5 top, 0 center, 0.5 bottom)
@@ -772,6 +783,8 @@ function getCurrentStateSnapshot() {
     digitalShowSeconds,
     digitalScaleRel,
     digitalSpacingRel,
+    digitalColonPaddingRel,
+    digitalColonYOffsetRel,
     digitalYOffsetRel,
     digitalGlowRel,
     digitalManualTime,
@@ -846,6 +859,8 @@ function applyStateSnapshot(state) {
   digitalShowSeconds = state.digitalShowSeconds;
   digitalScaleRel = state.digitalScaleRel;
   digitalSpacingRel = state.digitalSpacingRel;
+  digitalColonPaddingRel = state.digitalColonPaddingRel;
+  digitalColonYOffsetRel = state.digitalColonYOffsetRel;
   digitalYOffsetRel = state.digitalYOffsetRel;
   digitalGlowRel = state.digitalGlowRel;
   digitalManualTime = state.digitalManualTime;
@@ -929,6 +944,8 @@ const DIGITAL_FONTS = {
 const DEFAULT_digitalShowSeconds = true;
 const DEFAULT_digitalScaleRel    = 0.9;
 const DEFAULT_digitalSpacingRel  = 1;
+const DEFAULT_digitalColonPaddingRel = 1;
+const DEFAULT_digitalColonYOffsetRel = 0;
 const DEFAULT_digitalYOffsetRel  = 0;
 const DEFAULT_digitalGlowRel     = 0;
 const DEFAULT_digitalManualTime  = '12:00:00';
@@ -1040,6 +1057,8 @@ let digitalFont        = DEFAULT_digitalFont;
 let digitalShowSeconds = DEFAULT_digitalShowSeconds;
 let digitalScaleRel    = DEFAULT_digitalScaleRel;
 let digitalSpacingRel  = DEFAULT_digitalSpacingRel;
+let digitalColonPaddingRel = DEFAULT_digitalColonPaddingRel;
+let digitalColonYOffsetRel = DEFAULT_digitalColonYOffsetRel;
 let digitalYOffsetRel  = DEFAULT_digitalYOffsetRel;
 let digitalGlowRel     = DEFAULT_digitalGlowRel;
 let digitalManualTime  = DEFAULT_digitalManualTime;
@@ -1105,6 +1124,8 @@ if (Object.prototype.hasOwnProperty.call(DIGITAL_FONTS, requestedDigitalFont)) {
 digitalShowSeconds = paramBool('digitalShowSeconds', digitalShowSeconds);
 digitalScaleRel = Math.max(0.2, Math.min(1, paramFloat('digitalScaleRel', digitalScaleRel)));
 digitalSpacingRel = Math.max(-2, Math.min(4, paramFloat('digitalSpacingRel', digitalSpacingRel)));
+digitalColonPaddingRel = Math.max(0, Math.min(4, paramFloat('digitalColonPaddingRel', digitalColonPaddingRel)));
+digitalColonYOffsetRel = Math.max(-0.1, Math.min(0.1, paramFloat('digitalColonYOffsetRel', digitalColonYOffsetRel)));
 digitalYOffsetRel = Math.max(-0.5, Math.min(0.5, paramFloat('digitalYOffsetRel', digitalYOffsetRel)));
 digitalGlowRel = Math.max(0, Math.min(1, paramFloat('digitalGlowRel', digitalGlowRel)));
 const requestedManualTime = params.get('digitalManualTime');
@@ -1946,7 +1967,9 @@ function getDigitalTimeText(now = new Date()) {
 
 function getDigitalLayout(w, h) {
   const gap = 8 * digitalSpacingRel;
-  const unitsWidth = digitalShowSeconds ? 408 + 7 * gap : 264 + 4 * gap;
+  // Follow expanded kerning, but do not squeeze separators when digit kerning is tight.
+  const colonGap = 8 * digitalColonPaddingRel + Math.max(0, gap - 8);
+  const unitsWidth = digitalShowSeconds ? 408 + 3 * gap + 4 * colonGap : 264 + 2 * gap + 2 * colonGap;
   const baseUnitsWidth = digitalShowSeconds ? 464 : 296;
   // Reserve space for the glow inside both the fitted display and its drift bounds.
   const padding = 4 + digitalGlowRel * 24;
@@ -1955,7 +1978,7 @@ function getDigitalLayout(w, h) {
                          h * digitalScaleRel / (100 + padding * 2));
   const width = (unitsWidth + padding * 2) * scale;
   const height = (100 + padding * 2) * scale;
-  return { width, height, scale, padding, gap, offsetY: (h - height) * digitalYOffsetRel };
+  return { width, height, scale, padding, gap, colonGap, offsetY: (h - height) * digitalYOffsetRel };
 }
 
 const DIGITAL_SEGMENTS = [
@@ -1974,7 +1997,7 @@ let lastDigitalSettings = '';
 function drawDigitalClock() {
   const text = getDigitalTimeText();
   const layout = getDigitalLayout(canvas.width, canvas.height);
-  const settings = [text, digitalStyle, digitalFont, fontReady, vfdColor, digitalGlowRel, digitalSpacingRel, layout.width, layout.height].join('|');
+  const settings = [text, digitalStyle, digitalFont, fontReady, vfdColor, digitalGlowRel, digitalSpacingRel, digitalColonPaddingRel, digitalColonYOffsetRel, layout.width, layout.height].join('|');
   if (!digitalCanvas || settings !== lastDigitalSettings) {
     if (!digitalCanvas) digitalCanvas = document.createElement('canvas');
     digitalCanvas.width = Math.ceil(layout.width);
@@ -1989,8 +2012,11 @@ function drawDigitalClock() {
     localCtx.textAlign = 'center';
     localCtx.textBaseline = 'middle';
     let x = 0;
-    for (const char of text) {
+    for (let charIndex = 0; charIndex < text.length; charIndex++) {
+      const char = text[charIndex];
       const width = char === ':' ? 24 : 60;
+      localCtx.save();
+      if (char === ':') localCtx.translate(0, digitalColonYOffsetRel * 100);
       if (['clean', 'outline', 'split-flap'].includes(digitalStyle)) {
         if (digitalStyle === 'split-flap' && char !== ':') {
           localCtx.save();
@@ -2054,7 +2080,9 @@ function drawDigitalClock() {
           localCtx.fill();
         }
       }
-      x += width + layout.gap;
+      localCtx.restore();
+      const nextChar = text[charIndex + 1];
+      x += width + (nextChar ? (char === ':' || nextChar === ':' ? layout.colonGap : layout.gap) : 0);
     }
     lastDigitalSettings = settings;
     canvas.setAttribute('role', 'img');
@@ -2303,6 +2331,8 @@ const digitalManualTimeInput = document.getElementById('digitalManualTimeInput')
 const digitalSliders = [
   ['digitalScaleRel', document.getElementById('digitalScaleRelSlider'), document.getElementById('digitalScaleRelValue')],
   ['digitalSpacingRel', document.getElementById('digitalSpacingRelSlider'), document.getElementById('digitalSpacingRelValue')],
+  ['digitalColonPaddingRel', document.getElementById('digitalColonPaddingRelSlider'), document.getElementById('digitalColonPaddingRelValue')],
+  ['digitalColonYOffsetRel', document.getElementById('digitalColonYOffsetRelSlider'), document.getElementById('digitalColonYOffsetRelValue')],
   ['digitalYOffsetRel', document.getElementById('digitalYOffsetRelSlider'), document.getElementById('digitalYOffsetRelValue')],
   ['digitalGlowRel', document.getElementById('digitalGlowRelSlider'), document.getElementById('digitalGlowRelValue')]
 ];
@@ -2395,7 +2425,7 @@ function syncControls() {
   digitalShowSecondsCheckbox.checked = digitalShowSeconds;
   digitalManualTimeInput.value = digitalManualTime;
   digitalManualTimeInput.disabled = runClock;
-  const digitalValues = { digitalScaleRel, digitalSpacingRel, digitalYOffsetRel, digitalGlowRel };
+  const digitalValues = { digitalScaleRel, digitalSpacingRel, digitalColonPaddingRel, digitalColonYOffsetRel, digitalYOffsetRel, digitalGlowRel };
   for (const [name, slider, value] of digitalSliders) {
     slider.value = digitalValues[name];
     value.textContent = digitalValues[name].toFixed(3);
@@ -2668,6 +2698,8 @@ for (const [name, slider, value] of digitalSliders) {
     const next = Number(slider.value);
     if (name === 'digitalScaleRel') digitalScaleRel = next;
     if (name === 'digitalSpacingRel') digitalSpacingRel = next;
+    if (name === 'digitalColonPaddingRel') digitalColonPaddingRel = next;
+    if (name === 'digitalColonYOffsetRel') digitalColonYOffsetRel = next;
     if (name === 'digitalYOffsetRel') digitalYOffsetRel = next;
     if (name === 'digitalGlowRel') digitalGlowRel = next;
     value.textContent = next.toFixed(3);
@@ -3080,6 +3112,8 @@ function buildConfigUrl() {
   addBool('digitalShowSeconds', digitalShowSeconds, DEFAULT_digitalShowSeconds);
   addFloat('digitalScaleRel', digitalScaleRel, DEFAULT_digitalScaleRel);
   addFloat('digitalSpacingRel', digitalSpacingRel, DEFAULT_digitalSpacingRel);
+  addFloat('digitalColonPaddingRel', digitalColonPaddingRel, DEFAULT_digitalColonPaddingRel);
+  addFloat('digitalColonYOffsetRel', digitalColonYOffsetRel, DEFAULT_digitalColonYOffsetRel);
   addFloat('digitalYOffsetRel', digitalYOffsetRel, DEFAULT_digitalYOffsetRel);
   addFloat('digitalGlowRel', digitalGlowRel, DEFAULT_digitalGlowRel);
   if (digitalManualTime !== DEFAULT_digitalManualTime) qs.set('digitalManualTime', digitalManualTime);
