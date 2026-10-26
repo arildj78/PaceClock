@@ -378,13 +378,13 @@
           Digit spacing (kerning multiplier)
           <input id="digitalSpacingRelSlider" type="range" min="-2" max="4" step="0.01" />
           <span class="value" id="digitalSpacingRelValue"></span>
-          <span class="value">Spacing only; reduce Size if wider spacing extends beyond the screen.</span>
+          <span class="value">Only between adjacent digits; does not change gaps beside colons.</span>
         </label>
         <label>
           Colon spacing (each side)
           <input id="digitalColonPaddingRelSlider" type="range" min="0" max="4" step="0.01" />
           <span class="value" id="digitalColonPaddingRelValue"></span>
-          <span class="value">Fine-tunes colon gaps; wider digit spacing also expands them automatically.</span>
+          <span class="value">Only beside colons; independent of digit spacing.</span>
         </label>
         <label>
           Colon vertical offset (- up, + down)
@@ -1550,6 +1550,14 @@ const DIGIT_PATTERNS = {
   ':': ['00000','00100','00100','00000','00100','00100','00000']
 };
 
+function getCharacterBoundaryGaps(text, digitGap, colonPadding) {
+  const gaps = [];
+  for (let i = 0; i < text.length - 1; i++) {
+    gaps.push(digitGap + (text[i] === ':' || text[i + 1] === ':' ? colonPadding : 0));
+  }
+  return gaps;
+}
+
 function drawVFDDisplay(size, r, targetCtx) {
   if (!vfdEnabled) return;
   const localCtx = targetCtx || ctx;
@@ -1595,17 +1603,9 @@ function drawVFDDisplay(size, r, targetCtx) {
   // Compute total columns and total width: base spacing between adjacent columns is dotSpacing.
   const totalCols = colCounts.reduce((s, c) => s + c, 0);
   // between-block extra spacing (we want gapBetweenDigits instead of plain dotSpacing at block boundaries)
-  const numBlocks = colCounts.length;
   // compute per-boundary extra spacing and include colon-specific padding (vfdColonPadding is in dot units)
-  const boundaryExtras = [];
-  for (let i = 0; i < numBlocks - 1; i++) {
-    let extra = Math.max(0, gapBetweenDigits - dotSpacing);
-    // increase extra when the boundary touches a colon so the colon slider has effect
-    if (text[i] === ':' || text[i+1] === ':') {
-      extra += vfdColonPadding * dotSpacing;
-    }
-    boundaryExtras.push(extra);
-  }
+  const boundaryExtras = getCharacterBoundaryGaps(
+    text, Math.max(0, gapBetweenDigits - dotSpacing), vfdColonPadding * dotSpacing);
   const totalWidth = (totalCols - 1) * dotSpacing + boundaryExtras.reduce((s, a) => s + a, 0);
 
   // Starting X (leftmost column center)
@@ -1967,9 +1967,10 @@ function getDigitalTimeText(now = new Date()) {
 
 function getDigitalLayout(w, h) {
   const gap = 8 * digitalSpacingRel;
-  // Follow expanded kerning, but do not squeeze separators when digit kerning is tight.
-  const colonGap = 8 * digitalColonPaddingRel + Math.max(0, gap - 8);
-  const unitsWidth = digitalShowSeconds ? 408 + 3 * gap + 4 * colonGap : 264 + 2 * gap + 2 * colonGap;
+  const text = digitalShowSeconds ? '00:00:00' : '00:00';
+  const boundaryGaps = Array.from(text.slice(0, -1), (char, index) =>
+    char === ':' || text[index + 1] === ':' ? 8 * digitalColonPaddingRel : gap);
+  const unitsWidth = (digitalShowSeconds ? 408 : 264) + boundaryGaps.reduce((sum, value) => sum + value, 0);
   const baseUnitsWidth = digitalShowSeconds ? 464 : 296;
   // Reserve space for the glow inside both the fitted display and its drift bounds.
   const padding = 4 + digitalGlowRel * 24;
@@ -1978,7 +1979,7 @@ function getDigitalLayout(w, h) {
                          h * digitalScaleRel / (100 + padding * 2));
   const width = (unitsWidth + padding * 2) * scale;
   const height = (100 + padding * 2) * scale;
-  return { width, height, scale, padding, gap, colonGap, offsetY: (h - height) * digitalYOffsetRel };
+  return { width, height, scale, padding, boundaryGaps, offsetY: (h - height) * digitalYOffsetRel };
 }
 
 const DIGITAL_SEGMENTS = [
@@ -2081,8 +2082,7 @@ function drawDigitalClock() {
         }
       }
       localCtx.restore();
-      const nextChar = text[charIndex + 1];
-      x += width + (nextChar ? (char === ':' || nextChar === ':' ? layout.colonGap : layout.gap) : 0);
+      x += width + (layout.boundaryGaps[charIndex] || 0);
     }
     lastDigitalSettings = settings;
     canvas.setAttribute('role', 'img');
