@@ -376,13 +376,13 @@
         </label>
         <label>
           Digit spacing (kerning multiplier)
-          <input id="digitalSpacingRelSlider" type="range" min="-2" max="4" step="0.01" />
+          <input id="digitalSpacingRelSlider" type="range" min="-4" max="4" step="0.01" />
           <span class="value" id="digitalSpacingRelValue"></span>
           <span class="value">Only between adjacent digits; does not change gaps beside colons.</span>
         </label>
         <label>
           Colon spacing (each side)
-          <input id="digitalColonPaddingRelSlider" type="range" min="0" max="4" step="0.01" />
+          <input id="digitalColonPaddingRelSlider" type="range" min="-2" max="4" step="0.01" />
           <span class="value" id="digitalColonPaddingRelValue"></span>
           <span class="value">Only beside colons; independent of digit spacing.</span>
         </label>
@@ -1123,8 +1123,8 @@ if (Object.prototype.hasOwnProperty.call(DIGITAL_FONTS, requestedDigitalFont)) {
 }
 digitalShowSeconds = paramBool('digitalShowSeconds', digitalShowSeconds);
 digitalScaleRel = Math.max(0.2, Math.min(1, paramFloat('digitalScaleRel', digitalScaleRel)));
-digitalSpacingRel = Math.max(-2, Math.min(4, paramFloat('digitalSpacingRel', digitalSpacingRel)));
-digitalColonPaddingRel = Math.max(0, Math.min(4, paramFloat('digitalColonPaddingRel', digitalColonPaddingRel)));
+digitalSpacingRel = Math.max(-4, Math.min(4, paramFloat('digitalSpacingRel', digitalSpacingRel)));
+digitalColonPaddingRel = Math.max(-2, Math.min(4, paramFloat('digitalColonPaddingRel', digitalColonPaddingRel)));
 digitalColonYOffsetRel = Math.max(-0.1, Math.min(0.1, paramFloat('digitalColonYOffsetRel', digitalColonYOffsetRel)));
 digitalYOffsetRel = Math.max(-0.5, Math.min(0.5, paramFloat('digitalYOffsetRel', digitalYOffsetRel)));
 digitalGlowRel = Math.max(0, Math.min(1, paramFloat('digitalGlowRel', digitalGlowRel)));
