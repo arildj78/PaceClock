@@ -184,23 +184,27 @@ Only controls relevant to the selected mode are shown.</p>
 <td><p>0.9</p></td>
 <td><p>Size relative to available area (0.2-1)</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">digitalYOffsetRel</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">digitalSpacingRel</span></code></p></td>
+<td><p>1</p></td>
+<td><p>Digit spacing multiplier (-2 to 4)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">digitalYOffsetRel</span></code></p></td>
 <td><p>0</p></td>
 <td><p>Vertical position (-0.5 top to 0.5 bottom)</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">digitalGlowRel</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">digitalGlowRel</span></code></p></td>
 <td><p>0</p></td>
 <td><p>Glow intensity (0-1)</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">digitalManualTime</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">digitalManualTime</span></code></p></td>
 <td><p>12:00:00</p></td>
 <td><p>Preview time (HH:MM:SS) when <code class="docutils literal notranslate"><span class="pre">runClock=0</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">vfdColor</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">vfdColor</span></code></p></td>
 <td><p>#00b7ff</p></td>
 <td><p>Digit color (hex code)</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">backgroundColor</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">backgroundColor</span></code></p></td>
 <td><p>#000000</p></td>
 <td><p>Background color (hex code)</p></td>
 </tr>
@@ -228,10 +232,19 @@ This is a static visual treatment, not a flip animation.</p></li>
 No external font service is used. Fonts are fitted within fixed digit cells
 to keep the display stable as the time changes. Seven-segment and Dot-matrix
 use drawn shapes, so the font selector is disabled for those designs.</p>
+<p>The Character spacing (kerning) slider works in all five designs and adjusts the gaps between
+characters, including around colons. Zero removes the extra gap, 1 preserves
+the original spacing, and 4 gives four times the extra gap. Negative values down
+to -2 pull character cells closer together and can overlap them. Spacing only moves
+characters: glyph size, height, and stroke thickness remain unchanged.
+Size is fitted using the original spacing, independently of this control.
+Wide spacing can extend beyond the drawing area; reduce Size to fit it.
+Spacing is retained when switching modes and included in shared URLs.</p>
 <p>Color presets, Run clock, screen-saver drift, debug overlay, and Copy URL work
 in digital mode too. Turn off Run clock to edit the manual preview time.
-The display fits both the width and height of its drawing area. Drift bounds
-account for its rectangular shape, vertical position, and glow.</p>
+At the original spacing, the display fits both the width and height of its drawing
+area. Drift bounds account for the actual character spacing, rectangular shape,
+vertical position, and glow. If the display is too wide to drift, it stays centered.</p>
 <p>The generated share URL preserves the selected mode and its settings, but omits
 <code class="docutils literal notranslate"><span class="pre">setupmode</span></code>. <code class="docutils literal notranslate"><span class="pre">vfdEnabled</span></code> and the other VFD geometry/test settings below
 apply only to the swim clock’s optional display, not the standalone digital clock.</p>
