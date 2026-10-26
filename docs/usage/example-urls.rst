@@ -3,6 +3,29 @@ Example URLs
 
 Here are practical examples showing how to create URLs for different use cases.
 
+24-hour Digital Clock
+---------------------
+
+``https://arildj78.github.io/PaceClock/clock.html?mode=digital``
+
+Pure digital HH:MM:SS display with the Clean design.
+
+``https://arildj78.github.io/PaceClock/clock.html?mode=digital&digitalStyle=segment&digitalShowSeconds=0&vfdColor=%2300ff88``
+
+Green seven-segment HH:MM display.
+
+``https://arildj78.github.io/PaceClock/clock.html?mode=digital&digitalStyle=matrix&setupmode=1``
+
+Configure a dot-matrix clock using the live setup controls.
+
+``https://arildj78.github.io/PaceClock/clock.html?mode=digital&digitalStyle=split-flap&digitalFont=condensed``
+
+Split-flap cards with condensed digits.
+
+``https://arildj78.github.io/PaceClock/clock.html?mode=digital&digitalStyle=outline&digitalFont=rounded``
+
+Outlined digits with a rounded font.
+
 Minimal Display (No Digital Time)
 ---------------------------------
 

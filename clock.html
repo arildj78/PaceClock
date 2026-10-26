@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <link rel="preload" href="./font/bfont.woff2" as="font" type="font/woff2" crossorigin />
-  <title>Analog pacing‑klokke</title>
+  <title>Pace clock</title>
   <style>
     @font-face {
       font-family: 'BFont';
@@ -89,7 +89,7 @@
     .controls input[type="range"] {
       width:100%;
     }
-    .controls select {
+    .controls select, .modeAction select {
       width:100%;
       padding:4px;
       background:black;
@@ -102,6 +102,7 @@
     }
     .modeTabs {
       display:flex;
+      flex-wrap:wrap;
       gap:8px;
       margin-bottom:10px;
     }
@@ -141,8 +142,15 @@
     <div class="modeTabs">
       <button id="swimTabButton" class="modeTabButton" type="button">Swim clock</button>
       <button id="wallTabButton" class="modeTabButton" type="button">Wall clock</button>
+      <button id="digitalTabButton" class="modeTabButton" type="button">Digital clock</button>
     </div>
     <div class="modeAction">
+      <label for="copyFromModeSelect">Copy settings from</label>
+      <select id="copyFromModeSelect">
+        <option value="swim">Swim clock</option>
+        <option value="wall">Wall clock</option>
+        <option value="digital">Digital clock</option>
+      </select>
       <button id="copyFromOtherButton" type="button">Grab values from other interface</button>
       <span class="value" id="copyFromOtherStatus"></span>
     </div>
@@ -303,11 +311,6 @@
             <span class="value" id="swimLeftColorValue"></span>
           </label>
           <label>
-            Digital display color
-            <input id="vfdColorInput" type="color" value="#00b7ff" />
-            <span class="value" id="vfdColorVal"></span>
-          </label>
-          <label>
             Swim minute hand color
             <input id="minuteColorInput" type="color" value="#888888" />
             <span class="value" id="minuteColorValue"></span>
@@ -330,6 +333,57 @@
             <span class="value" id="wallSecondColorValue"></span>
           </label>
         </div>
+        <label id="digitalColorLabel">
+          Digital display color
+          <input id="vfdColorInput" type="color" value="#00b7ff" />
+          <span class="value" id="vfdColorVal"></span>
+        </label>
+      </div>
+    </details>
+
+    <details open id="digitalClockDetails">
+      <summary class="groupTitle">24-hour digital clock</summary>
+      <div class="controls">
+        <label>
+          Design
+          <select id="digitalStyleSelect">
+            <option value="clean">Clean</option>
+            <option value="segment">Seven-segment</option>
+            <option value="matrix">Dot-matrix</option>
+            <option value="outline">Outline</option>
+            <option value="split-flap">Split-flap</option>
+          </select>
+        </label>
+        <label>
+          Font (text-based designs)
+          <select id="digitalFontSelect">
+            <option value="mono">Monospace</option>
+            <option value="sans">Sans-serif</option>
+            <option value="serif">Serif</option>
+            <option value="condensed">Condensed</option>
+            <option value="rounded">Rounded</option>
+            <option value="club">Club (BFont)</option>
+          </select>
+          <span class="value" id="digitalFontHint"></span>
+        </label>
+        <label style="flex-direction:row;align-items:center;gap:8px;">
+          <input id="digitalShowSecondsCheckbox" type="checkbox" /> Show seconds
+        </label>
+        <label>
+          Size (relative to available area)
+          <input id="digitalScaleRelSlider" type="range" min="0.2" max="1" step="0.001" />
+          <span class="value" id="digitalScaleRelValue"></span>
+        </label>
+        <label>
+          Vertical position (-0.5 top, 0 center, 0.5 bottom)
+          <input id="digitalYOffsetRelSlider" type="range" min="-0.5" max="0.5" step="0.01" />
+          <span class="value" id="digitalYOffsetRelValue"></span>
+        </label>
+        <label>
+          Glow intensity
+          <input id="digitalGlowRelSlider" type="range" min="0" max="1" step="0.01" />
+          <span class="value" id="digitalGlowRelValue"></span>
+        </label>
       </div>
     </details>
 
@@ -476,6 +530,10 @@
           <input id="manualAngleSlider" type="range" min="0" max="1" step="0.001" />
           <span class="value" id="manualAngleValue"></span>
         </label>
+        <label id="digitalManualTimeLabel">
+          Manual time (24-hour HH:MM:SS)
+          <input id="digitalManualTimeInput" type="time" step="1" required />
+        </label>
       </div>
     </details>
 
@@ -504,7 +562,7 @@
     </details>
 
   <details>
-      <summary class="groupTitle">Screen Saver Drift (setupmode only)</summary>
+      <summary class="groupTitle">Screen Saver Drift</summary>
       <div class="controls">
         <label style="flex-direction:row;align-items:center;gap:8px;">
           <input id="driftEnabledCheckbox" type="checkbox" /> Enable drift
@@ -596,6 +654,8 @@ const leftPanel = document.getElementById('leftPanel');
 const rightPanel = document.getElementById('rightPanel');
 const swimTabButton = document.getElementById('swimTabButton');
 const wallTabButton = document.getElementById('wallTabButton');
+const digitalTabButton = document.getElementById('digitalTabButton');
+const copyFromModeSelect = document.getElementById('copyFromModeSelect');
 const copyFromOtherButton = document.getElementById('copyFromOtherButton');
 const copyFromOtherStatus = document.getElementById('copyFromOtherStatus');
 
@@ -608,7 +668,9 @@ leftPanel.style.display = showSetupPanel ? 'flex' : 'none';
 const params = new URLSearchParams(window.location.search);
 const MODE_SWIM = 'swim';
 const MODE_WALL = 'wall';
-let currentMode = (params.get('mode') || MODE_SWIM).toLowerCase() === MODE_WALL ? MODE_WALL : MODE_SWIM;
+const MODE_DIGITAL = 'digital';
+const requestedMode = (params.get('mode') || MODE_SWIM).toLowerCase();
+let currentMode = [MODE_SWIM, MODE_WALL, MODE_DIGITAL].includes(requestedMode) ? requestedMode : MODE_SWIM;
 
 function paramFloat(name, current) {
   const v = params.get(name);
@@ -699,6 +761,13 @@ function getCurrentStateSnapshot() {
     vfdGlowRel,
     vfdDigitGapRel,
     vfdTestMode,
+    digitalStyle,
+    digitalFont,
+    digitalShowSeconds,
+    digitalScaleRel,
+    digitalYOffsetRel,
+    digitalGlowRel,
+    digitalManualTime,
     numberOffsets: cloneNumberOffsets(numberOffsets)
   };
 }
@@ -765,6 +834,13 @@ function applyStateSnapshot(state) {
   vfdGlowRel = state.vfdGlowRel;
   vfdDigitGapRel = state.vfdDigitGapRel;
   vfdTestMode = state.vfdTestMode;
+  digitalStyle = state.digitalStyle;
+  digitalFont = state.digitalFont;
+  digitalShowSeconds = state.digitalShowSeconds;
+  digitalScaleRel = state.digitalScaleRel;
+  digitalYOffsetRel = state.digitalYOffsetRel;
+  digitalGlowRel = state.digitalGlowRel;
+  digitalManualTime = state.digitalManualTime;
 
   const clonedOffsets = cloneNumberOffsets(state.numberOffsets || numberOffsets);
   for (const n of [5,10,15,20,25,30,35,40,45,50,55,60]) {
@@ -775,7 +851,8 @@ function applyStateSnapshot(state) {
 
 let modeStates = {
   [MODE_SWIM]: null,
-  [MODE_WALL]: null
+  [MODE_WALL]: null,
+  [MODE_DIGITAL]: null
 };
 
 // ===== Relative configuration (all 0–1 where noted) =====
@@ -830,6 +907,22 @@ const DEFAULT_vfdColonPadding    = 0.400;   // in dot spacings
 const DEFAULT_vfdCornerRel       = 0.25;  // corner radius relative to dotRadius
 const DEFAULT_vfdGlowRel         = 0.000;   // shadow blur multiplier
 const DEFAULT_vfdDigitGapRel     = 0.380;   // extra digit spacing multiplier (adds to base gap factor)
+const DEFAULT_digitalStyle       = 'clean';
+const DEFAULT_digitalFont        = 'mono';
+const DIGITAL_STYLES = ['clean', 'segment', 'matrix', 'outline', 'split-flap'];
+const DIGITAL_FONTS = {
+  mono: 'monospace',
+  sans: 'Arial, Helvetica, sans-serif',
+  serif: 'Georgia, "Times New Roman", serif',
+  condensed: 'Impact, "Arial Narrow", sans-serif',
+  rounded: '"Trebuchet MS", Verdana, sans-serif',
+  club: '"BFont", Arial, sans-serif'
+};
+const DEFAULT_digitalShowSeconds = true;
+const DEFAULT_digitalScaleRel    = 0.9;
+const DEFAULT_digitalYOffsetRel  = 0;
+const DEFAULT_digitalGlowRel     = 0;
+const DEFAULT_digitalManualTime  = '12:00:00';
 
 // Drift / screensaver defaults
 const DEFAULT_driftEnabled       = true;     // enable very slow drift by default
@@ -933,6 +1026,13 @@ let vfdCornerRel        = DEFAULT_vfdCornerRel;
 let vfdGlowRel          = DEFAULT_vfdGlowRel;
 let vfdDigitGapRel      = DEFAULT_vfdDigitGapRel;
 let vfdTestMode         = 'normal'; // 'normal' | 'all' | '88'
+let digitalStyle       = DEFAULT_digitalStyle;
+let digitalFont        = DEFAULT_digitalFont;
+let digitalShowSeconds = DEFAULT_digitalShowSeconds;
+let digitalScaleRel    = DEFAULT_digitalScaleRel;
+let digitalYOffsetRel  = DEFAULT_digitalYOffsetRel;
+let digitalGlowRel     = DEFAULT_digitalGlowRel;
+let digitalManualTime  = DEFAULT_digitalManualTime;
 
 // Apply URL overrides (if provided)
 outerRel            = paramFloat('outerRel', outerRel);
@@ -984,6 +1084,22 @@ vfdCornerRel    = paramFloat('vfdCornerRel', vfdCornerRel);
 vfdGlowRel      = paramFloat('vfdGlowRel', vfdGlowRel);
 vfdTestMode     = params.get('vfdTestMode') || vfdTestMode;
 vfdDigitGapRel  = paramFloat('vfdDigitGapRel', vfdDigitGapRel);
+const requestedDigitalStyle = params.get('digitalStyle');
+if (DIGITAL_STYLES.includes(requestedDigitalStyle)) {
+  digitalStyle = requestedDigitalStyle;
+}
+const requestedDigitalFont = params.get('digitalFont');
+if (Object.prototype.hasOwnProperty.call(DIGITAL_FONTS, requestedDigitalFont)) {
+  digitalFont = requestedDigitalFont;
+}
+digitalShowSeconds = paramBool('digitalShowSeconds', digitalShowSeconds);
+digitalScaleRel = Math.max(0.2, Math.min(1, paramFloat('digitalScaleRel', digitalScaleRel)));
+digitalYOffsetRel = Math.max(-0.5, Math.min(0.5, paramFloat('digitalYOffsetRel', digitalYOffsetRel)));
+digitalGlowRel = Math.max(0, Math.min(1, paramFloat('digitalGlowRel', digitalGlowRel)));
+const requestedManualTime = params.get('digitalManualTime');
+if (/^(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d$/.test(requestedManualTime || '')) {
+  digitalManualTime = requestedManualTime;
+}
 
 // Drift params
 driftEnabled        = paramBool('driftEnabled', driftEnabled);
@@ -1003,6 +1119,7 @@ wallSecondColor     = params.get('wallSecondColor') || wallSecondColor;
 
 modeStates[MODE_SWIM] = getCurrentStateSnapshot();
 modeStates[MODE_WALL] = getCurrentStateSnapshot();
+modeStates[MODE_DIGITAL] = getCurrentStateSnapshot();
 
 // Apply wall-specific color defaults to wall mode snapshot
 for (const [key, value] of Object.entries(WALL_MODE_COLORS)) {
@@ -1112,6 +1229,17 @@ function getCanvasCenterAndRadius() {
 
 function computeDriftBounds(w, h) {
   if (w <= 0 || h <= 0) return null;
+  if (currentMode === MODE_DIGITAL) {
+    const layout = getDigitalLayout(w, h);
+    const marginPx = Math.min(w, h) * driftMarginRel;
+    const maxX = (w - layout.width) / 2 - marginPx;
+    const maxY = (h - layout.height) * (0.5 - Math.abs(digitalYOffsetRel)) - marginPx;
+    // Subpixel rounding at a fully occupied edge must not create a near-zero bounce range.
+    return {
+      maxX: maxX > 1e-6 ? maxX : 0,
+      maxY: maxY > 1e-6 ? maxY : 0
+    };
+  }
   const { r } = getCanvasCenterAndRadius();
   const marginPx = Math.min(w, h) * driftMarginRel;
   return {
@@ -1376,6 +1504,20 @@ function drawBackground(size, r) {
 
 // Draw a VFD-style dot-matrix digital clock on the lower half of the face.
 // This is a preview: it renders HH:MM (24-hour) using a 5x7 dot font and a soft neon glow.
+const DIGIT_PATTERNS = {
+  '0': ['01110','10001','10011','10101','11001','10001','01110'],
+  '1': ['00100','01100','00100','00100','00100','00100','01110'],
+  '2': ['01110','10001','00001','00010','00100','01000','11111'],
+  '3': ['01110','10001','00001','00110','00001','10001','01110'],
+  '4': ['00010','00110','01010','10010','11111','00010','00010'],
+  '5': ['11111','10000','11110','00001','00001','10001','01110'],
+  '6': ['00110','01000','10000','11110','10001','10001','01110'],
+  '7': ['11111','00001','00010','00100','01000','01000','01000'],
+  '8': ['01110','10001','10001','01110','10001','10001','01110'],
+  '9': ['01110','10001','10001','01111','00001','00010','01100'],
+  ':': ['00000','00100','00100','00000','00100','00100','00000']
+};
+
 function drawVFDDisplay(size, r, targetCtx) {
   if (!vfdEnabled) return;
   const localCtx = targetCtx || ctx;
@@ -1396,19 +1538,7 @@ function drawVFDDisplay(size, r, targetCtx) {
   }
 
   // 5x7 dot patterns for digits 0-9 and colon
-  const PATTERNS = {
-    '0': ['01110','10001','10011','10101','11001','10001','01110'],
-    '1': ['00100','01100','00100','00100','00100','00100','01110'],
-    '2': ['01110','10001','00001','00010','00100','01000','11111'],
-    '3': ['01110','10001','00001','00110','00001','10001','01110'],
-    '4': ['00010','00110','01010','10010','11111','00010','00010'],
-    '5': ['11111','10000','11110','00001','00001','10001','01110'],
-    '6': ['00110','01000','10000','11110','10001','10001','01110'],
-    '7': ['11111','00001','00010','00100','01000','01000','01000'],
-    '8': ['01110','10001','10001','01110','10001','10001','01110'],
-    '9': ['01110','10001','10001','01111','00001','00010','01100'],
-    ':': ['00000','00100','00100','00000','00100','00100','00000']
-  };
+  const PATTERNS = DIGIT_PATTERNS;
 
   // sizing (allow very small clocks to shrink dots further; keep a low floor for visibility)
   const dotRadius = Math.max(0.25, r * 0.015 * vfdScaleRel);
@@ -1796,6 +1926,131 @@ function drawCenterElement(r, baseAngle) {
   }
 }
 
+function getDigitalTimeText(now = new Date()) {
+  const time = runClock
+    ? [now.getHours(), now.getMinutes(), now.getSeconds()].map(n => String(n).padStart(2, '0')).join(':')
+    : digitalManualTime;
+  return digitalShowSeconds ? time : time.slice(0, 5);
+}
+
+function getDigitalLayout(w, h) {
+  const unitsWidth = digitalShowSeconds ? 464 : 296;
+  // Reserve space for the glow inside both the fitted display and its drift bounds.
+  const padding = 4 + digitalGlowRel * 24;
+  const scale = Math.min(w * digitalScaleRel / (unitsWidth + padding * 2),
+                         h * digitalScaleRel / (100 + padding * 2));
+  const width = (unitsWidth + padding * 2) * scale;
+  const height = (100 + padding * 2) * scale;
+  return { width, height, scale, padding, offsetY: (h - height) * digitalYOffsetRel };
+}
+
+const DIGITAL_SEGMENTS = [
+  [[10,2],[50,2],[44,8],[16,8]],
+  [[51,3],[51,47],[45,42],[45,10]],
+  [[51,53],[51,97],[45,90],[45,58]],
+  [[10,98],[50,98],[44,92],[16,92]],
+  [[9,53],[15,58],[15,90],[9,97]],
+  [[9,3],[15,10],[15,42],[9,47]],
+  [[10,50],[16,45],[44,45],[50,50],[44,55],[16,55]]
+];
+const DIGITAL_SEGMENT_DIGITS = ['abcdef','bc','abdeg','abcdg','bcfg','acdfg','acdefg','abc','abcdefg','abcdfg'];
+let digitalCanvas = null;
+let lastDigitalSettings = '';
+
+function drawDigitalClock() {
+  const text = getDigitalTimeText();
+  const layout = getDigitalLayout(canvas.width, canvas.height);
+  const settings = [text, digitalStyle, digitalFont, fontReady, vfdColor, digitalGlowRel, layout.width, layout.height].join('|');
+  if (!digitalCanvas || settings !== lastDigitalSettings) {
+    if (!digitalCanvas) digitalCanvas = document.createElement('canvas');
+    digitalCanvas.width = Math.ceil(layout.width);
+    digitalCanvas.height = Math.ceil(layout.height);
+    const localCtx = digitalCanvas.getContext('2d');
+    localCtx.scale(layout.scale, layout.scale);
+    localCtx.translate(layout.padding, layout.padding);
+    localCtx.fillStyle = vfdColor;
+    localCtx.shadowColor = vfdColor;
+    localCtx.shadowBlur = digitalGlowRel * 8 * layout.scale;
+    localCtx.font = `bold 88px ${DIGITAL_FONTS[digitalFont]}`;
+    localCtx.textAlign = 'center';
+    localCtx.textBaseline = 'middle';
+    let x = 0;
+    for (const char of text) {
+      const width = char === ':' ? 24 : 60;
+      if (['clean', 'outline', 'split-flap'].includes(digitalStyle)) {
+        if (digitalStyle === 'split-flap' && char !== ':') {
+          localCtx.save();
+          localCtx.shadowBlur = 0;
+          localCtx.fillStyle = '#1c2028';
+          localCtx.fillRect(x + 1, 1, width - 2, 98);
+          localCtx.strokeStyle = '#626975';
+          localCtx.lineWidth = 1;
+          localCtx.strokeRect(x + 1, 1, width - 2, 98);
+          localCtx.restore();
+        }
+        // Fit the actual glyph ink, including fonts whose digits extend outside their advance width.
+        const metrics = localCtx.measureText(char);
+        const inkWidth = metrics.actualBoundingBoxLeft + metrics.actualBoundingBoxRight;
+        const inkHeight = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
+        const glyphScale = Math.min(1, (width - 10) / Math.max(1, inkWidth), 80 / Math.max(1, inkHeight));
+        localCtx.save();
+        localCtx.translate(x + width / 2, 50);
+        localCtx.scale(glyphScale, glyphScale);
+        const glyphX = (metrics.actualBoundingBoxLeft - metrics.actualBoundingBoxRight) / 2;
+        const glyphY = (metrics.actualBoundingBoxAscent - metrics.actualBoundingBoxDescent) / 2;
+        if (digitalStyle === 'outline') {
+          localCtx.strokeStyle = vfdColor;
+          localCtx.lineWidth = 1.8 / glyphScale;
+          localCtx.strokeText(char, glyphX, glyphY);
+        } else {
+          localCtx.fillText(char, glyphX, glyphY);
+        }
+        localCtx.restore();
+        if (digitalStyle === 'split-flap' && char !== ':') {
+          localCtx.save();
+          localCtx.shadowBlur = 0;
+          localCtx.fillStyle = '#080a0e';
+          localCtx.fillRect(x + 1, 49, width - 2, 2);
+          localCtx.restore();
+        }
+      } else if (digitalStyle === 'matrix') {
+        const pattern = DIGIT_PATTERNS[char];
+        for (let row = 0; row < 7; row++) {
+          for (let col = 0; col < 5; col++) {
+            if (pattern[row][col] !== '1') continue;
+            const dotX = char === ':' ? x + 12 : x + 10 + col * 10;
+            localCtx.beginPath();
+            localCtx.arc(dotX, 8 + row * 14, 4, 0, Math.PI * 2);
+            localCtx.fill();
+          }
+        }
+      } else if (char === ':') {
+        localCtx.fillRect(x + 8, 28, 8, 8);
+        localCtx.fillRect(x + 8, 64, 8, 8);
+      } else {
+        const segments = DIGITAL_SEGMENT_DIGITS[Number(char)];
+        for (let i = 0; i < DIGITAL_SEGMENTS.length; i++) {
+          if (!segments.includes('abcdefg'[i])) continue;
+          localCtx.beginPath();
+          DIGITAL_SEGMENTS[i].forEach(([px, py], index) => {
+            if (index === 0) localCtx.moveTo(x + px, py);
+            else localCtx.lineTo(x + px, py);
+          });
+          localCtx.closePath();
+          localCtx.fill();
+        }
+      }
+      x += width + 8;
+    }
+    lastDigitalSettings = settings;
+    canvas.setAttribute('role', 'img');
+    canvas.setAttribute('aria-label', `24-hour clock ${text}`);
+  }
+  ctx.drawImage(digitalCanvas,
+    (canvas.width - digitalCanvas.width) / 2 + driftOffsetX,
+    (canvas.height - digitalCanvas.height) / 2 + layout.offsetY + driftOffsetY);
+}
+
 function drawClock() {
   // Assumes the caller already cleared the canvas
   const canvas = document.getElementById('clock');
@@ -1888,8 +2143,12 @@ function drawCurrentFrame() {
   // If font just became ready and cache is missing, build it
   const { r } = getCanvasCenterAndRadius();
   const size = r * 2;
-  if (fontReady && !faceCanvas) ensureFaceCache(size, r);
-  drawClock();
+  if (currentMode === MODE_DIGITAL) {
+    drawDigitalClock();
+  } else {
+    if (fontReady && !faceCanvas) ensureFaceCache(size, r);
+    drawClock();
+  }
   if (debugOverlayEnabled) {
     drawDebugDimensions();
   }
@@ -2023,6 +2282,15 @@ const logoOffsetYRelValue     = document.getElementById('logoOffsetYRelValue');
 const showBgCheckbox          = document.getElementById('showBgCheckbox');
 const copyUrlButton           = document.getElementById('copyUrlButton');
 const copyUrlStatus           = document.getElementById('copyUrlStatus');
+const digitalStyleSelect = document.getElementById('digitalStyleSelect');
+const digitalFontSelect = document.getElementById('digitalFontSelect');
+const digitalShowSecondsCheckbox = document.getElementById('digitalShowSecondsCheckbox');
+const digitalManualTimeInput = document.getElementById('digitalManualTimeInput');
+const digitalSliders = [
+  ['digitalScaleRel', document.getElementById('digitalScaleRelSlider'), document.getElementById('digitalScaleRelValue')],
+  ['digitalYOffsetRel', document.getElementById('digitalYOffsetRelSlider'), document.getElementById('digitalYOffsetRelValue')],
+  ['digitalGlowRel', document.getElementById('digitalGlowRelSlider'), document.getElementById('digitalGlowRelValue')]
+];
 const swimModeDetails = [
   document.getElementById('handControls')?.closest('details'),
   document.getElementById('vfdControls')?.closest('details'),
@@ -2106,6 +2374,17 @@ function applyColorPreset(presetId) {
 }
 
 function syncControls() {
+  digitalStyleSelect.value = digitalStyle;
+  digitalFontSelect.value = digitalFont;
+  syncDigitalFontControl();
+  digitalShowSecondsCheckbox.checked = digitalShowSeconds;
+  digitalManualTimeInput.value = digitalManualTime;
+  digitalManualTimeInput.disabled = runClock;
+  const digitalValues = { digitalScaleRel, digitalYOffsetRel, digitalGlowRel };
+  for (const [name, slider, value] of digitalSliders) {
+    slider.value = digitalValues[name];
+    value.textContent = digitalValues[name].toFixed(3);
+  }
   outerRelSlider.value          = outerRel;
   outerRelValue.textContent     = outerRel.toFixed(3);
 
@@ -2282,16 +2561,37 @@ function saveCurrentModeState() {
 
 function setModeSectionVisibility() {
   const isSwim = currentMode === MODE_SWIM;
+  const isWall = currentMode === MODE_WALL;
+  const isDigital = currentMode === MODE_DIGITAL;
   swimTabButton.classList.toggle('active', isSwim);
-  wallTabButton.classList.toggle('active', !isSwim);
+  wallTabButton.classList.toggle('active', isWall);
+  digitalTabButton.classList.toggle('active', isDigital);
+  for (const [button, active] of [[swimTabButton, isSwim], [wallTabButton, isWall], [digitalTabButton, isDigital]]) {
+    button.setAttribute('aria-pressed', String(active));
+  }
   for (const el of swimModeDetails) {
     el.style.display = isSwim ? '' : 'none';
   }
   for (const el of wallModeDetails) {
-    el.style.display = isSwim ? 'none' : '';
+    el.style.display = isWall ? '' : 'none';
   }
   if (swimColorControls) swimColorControls.style.display = isSwim ? '' : 'none';
-  if (wallColorControls) wallColorControls.style.display = isSwim ? 'none' : '';
+  if (wallColorControls) wallColorControls.style.display = isWall ? '' : 'none';
+  for (const id of ['clockControls', 'numberControls', 'bgControls', 'logoControls']) {
+    document.getElementById(id).closest('details').style.display = isDigital ? 'none' : '';
+  }
+  for (const input of [tickColorInput, numberColorInput, centerColorInput, manualAngleSlider]) {
+    input.closest('label').style.display = isDigital ? 'none' : '';
+  }
+  document.getElementById('digitalClockDetails').style.display = isDigital ? '' : 'none';
+  document.getElementById('digitalManualTimeLabel').style.display = isDigital ? '' : 'none';
+  document.getElementById('digitalColorLabel').style.display = isWall ? 'none' : '';
+  for (const option of copyFromModeSelect.options) {
+    option.disabled = option.value === currentMode;
+  }
+  if (copyFromModeSelect.value === currentMode) {
+    copyFromModeSelect.value = currentMode === MODE_SWIM ? MODE_WALL : MODE_SWIM;
+  }
 }
 
 function switchMode(nextMode) {
@@ -2303,6 +2603,13 @@ function switchMode(nextMode) {
   }
   syncControls();
   setModeSectionVisibility();
+  recomputeDriftVelocity();
+  clampDriftToBounds(true);
+  if (currentMode !== MODE_DIGITAL) {
+    canvas.removeAttribute('role');
+    canvas.removeAttribute('aria-label');
+    lastDigitalSettings = '';
+  }
 }
 
 swimTabButton.addEventListener('click', () => {
@@ -2313,16 +2620,64 @@ wallTabButton.addEventListener('click', () => {
   switchMode(MODE_WALL);
 });
 
+digitalTabButton.addEventListener('click', () => {
+  switchMode(MODE_DIGITAL);
+});
+
+function updateDigitalLayout() {
+  recomputeDriftVelocity();
+  clampDriftToBounds(true);
+}
+
+function syncDigitalFontControl() {
+  const drawnDigits = digitalStyle === 'segment' || digitalStyle === 'matrix';
+  digitalFontSelect.disabled = drawnDigits;
+  document.getElementById('digitalFontHint').textContent = drawnDigits
+    ? 'This design uses drawn digits rather than a font.'
+    : '';
+}
+
+digitalStyleSelect.addEventListener('change', () => {
+  digitalStyle = digitalStyleSelect.value;
+  syncDigitalFontControl();
+});
+digitalFontSelect.addEventListener('change', () => {
+  digitalFont = digitalFontSelect.value;
+});
+digitalShowSecondsCheckbox.addEventListener('change', () => {
+  digitalShowSeconds = digitalShowSecondsCheckbox.checked;
+  updateDigitalLayout();
+});
+for (const [name, slider, value] of digitalSliders) {
+  slider.addEventListener('input', () => {
+    const next = Number(slider.value);
+    if (name === 'digitalScaleRel') digitalScaleRel = next;
+    if (name === 'digitalYOffsetRel') digitalYOffsetRel = next;
+    if (name === 'digitalGlowRel') digitalGlowRel = next;
+    value.textContent = next.toFixed(3);
+    updateDigitalLayout();
+  });
+}
+digitalManualTimeInput.addEventListener('input', () => {
+  if (!digitalManualTimeInput.checkValidity()) {
+    digitalManualTimeInput.reportValidity();
+    return;
+  }
+  const value = digitalManualTimeInput.value;
+  digitalManualTime = value.length === 5 ? `${value}:00` : value;
+});
+
 populateColorPresetSelect();
 
 copyFromOtherButton.addEventListener('click', () => {
   saveCurrentModeState();
-  const otherMode = currentMode === MODE_SWIM ? MODE_WALL : MODE_SWIM;
+  const otherMode = copyFromModeSelect.value;
   const source = modeStates[otherMode] ? JSON.parse(JSON.stringify(modeStates[otherMode])) : null;
   if (!source) return;
   modeStates[currentMode] = source;
   applyStateSnapshot(modeStates[currentMode]);
   syncControls();
+  updateDigitalLayout();
   copyFromOtherStatus.textContent = `Copied from ${otherMode}`;
   setTimeout(() => {
     copyFromOtherStatus.textContent = '';
@@ -2586,6 +2941,7 @@ bgScaleRelSlider.addEventListener('input', () => {
 runClockCheckbox.addEventListener('change', () => {
   runClock = runClockCheckbox.checked;
   manualAngleSlider.disabled = runClock;
+  digitalManualTimeInput.disabled = runClock;
 });
 
 showLogoCheckbox.addEventListener('change', () => {
@@ -2703,6 +3059,13 @@ function buildConfigUrl() {
   if (currentMode !== MODE_SWIM) {
     qs.set('mode', currentMode);
   }
+  if (digitalStyle !== DEFAULT_digitalStyle) qs.set('digitalStyle', digitalStyle);
+  if (digitalFont !== DEFAULT_digitalFont) qs.set('digitalFont', digitalFont);
+  addBool('digitalShowSeconds', digitalShowSeconds, DEFAULT_digitalShowSeconds);
+  addFloat('digitalScaleRel', digitalScaleRel, DEFAULT_digitalScaleRel);
+  addFloat('digitalYOffsetRel', digitalYOffsetRel, DEFAULT_digitalYOffsetRel);
+  addFloat('digitalGlowRel', digitalGlowRel, DEFAULT_digitalGlowRel);
+  if (digitalManualTime !== DEFAULT_digitalManualTime) qs.set('digitalManualTime', digitalManualTime);
 
   addFloat('outerRel',            outerRel,            DEFAULT_outerRel);
   addFloat('minorInnerRel',       minorInnerRel,       DEFAULT_minorInnerRel);
