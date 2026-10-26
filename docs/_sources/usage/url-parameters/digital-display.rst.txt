@@ -53,7 +53,8 @@ to keep the display stable as the time changes. Seven-segment and Dot-matrix
 use drawn shapes, so the font selector is disabled for those designs.
 
 The Digit spacing (kerning) slider works in all five designs and adjusts the gaps
-between adjacent digits. Zero removes the extra gap, 1 preserves
+only between adjacent digits within each HH, MM, or SS pair.
+It does not affect the gaps beside colons. Zero removes the extra gap, 1 preserves
 the original spacing, and 4 gives four times the extra gap. Negative values down
 to -2 pull character cells closer together and can overlap them. Spacing only moves
 characters: glyph size, height, and stroke thickness remain unchanged.
@@ -61,13 +62,12 @@ Size is fitted using the original spacing, independently of this control.
 Wide spacing can extend beyond the drawing area; reduce Size to fit it.
 Spacing is retained when switching modes and included in shared URLs.
 
-Colon spacing (``digitalColonPaddingRel``, default 1, range 0-4) fine-tunes equal
-padding on each side of each separator. Above the original digit spacing of 1,
-colon gaps also grow by the same amount as digit gaps, keeping the time groups
-balanced. At digit spacing 1 or below, the colon padding stays unchanged,
-preventing tight or negative kerning from squeezing separators into digits.
-In digit-cell units, each colon gap is
-``8 * digitalColonPaddingRel + max(0, 8 * (digitalSpacingRel - 1))``.
+Colon spacing (``digitalColonPaddingRel``, default 1, range 0-4) adds equal
+padding on each side of each separator, independently of digit spacing.
+In digit-cell units, a gap between adjacent digits is ``8 * digitalSpacingRel``
+and a gap beside a colon is ``8 * digitalColonPaddingRel``.
+Neither slider affects the other type of gap. Unlike the Swim Clock's additive
+VFD spacing, standalone digital spacing uses separate gaps for digits and colons.
 Use Colon vertical offset (``digitalColonYOffsetRel``, default 0, range -0.1 to 0.1)
 to move only the separators up (negative) or down
 (positive), relative to the 100-unit digit cell height. Both controls apply to
