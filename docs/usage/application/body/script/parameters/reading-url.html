@@ -70,7 +70,11 @@
 <li class="toctree-l4"><a class="reference internal" href="../../../../url-parameters/numbers.html#individual-number-fine-tuning">Individual Number Fine-Tuning</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../url-parameters/digital-display.html">Digital Display</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../url-parameters/digital-display.html">Digital Display</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../../url-parameters/digital-display.html#standalone-24-hour-clock">Standalone 24-hour clock</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../url-parameters/digital-display.html#swim-clock-vfd">Swim clock VFD</a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../url-parameters/minute-hand.html">Minute Hand</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../url-parameters/reference-image.html">Reference Image</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../url-parameters/animation-control.html">Animation Control</a></li>
@@ -80,6 +84,7 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../creating-url.html">Creating a URL</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../example-urls.html">Example URLs</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../example-urls.html#hour-digital-clock">24-hour Digital Clock</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../example-urls.html#minimal-display-no-digital-time">Minimal Display (No Digital Time)</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../example-urls.html#large-clock-with-logo">Large Clock with Logo</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../example-urls.html#green-display-theme">Green Display Theme</a></li>
@@ -149,10 +154,10 @@
   <section id="reading-parameters-from-url">
 <h1>Reading Parameters from URL<a class="headerlink" href="#reading-parameters-from-url" title="Link to this heading"></a></h1>
 <p>URL parameters override defaults (lines ~543-620 in clock.html):</p>
-<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="nx">outerRel</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">paramFloat</span><span class="p">(</span><span class="s1">&#39;outerRel&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">outerRel</span><span class="p">);</span>
-<span class="nx">minorInnerRel</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">paramFloat</span><span class="p">(</span><span class="s1">&#39;minorInnerRel&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">minorInnerRel</span><span class="p">);</span>
-<span class="nx">showLogo</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">paramBool</span><span class="p">(</span><span class="s1">&#39;showLogo&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">showLogo</span><span class="p">);</span>
-<span class="nx">vfdColor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">params</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">&#39;vfdColor&#39;</span><span class="p">)</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nx">vfdColor</span><span class="p">;</span>
+<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="nx">outerRel</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">paramFloat</span><span class="p">(</span><span class="s1">'outerRel'</span><span class="p">,</span><span class="w"> </span><span class="nx">outerRel</span><span class="p">);</span>
+<span class="nx">minorInnerRel</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">paramFloat</span><span class="p">(</span><span class="s1">'minorInnerRel'</span><span class="p">,</span><span class="w"> </span><span class="nx">minorInnerRel</span><span class="p">);</span>
+<span class="nx">showLogo</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">paramBool</span><span class="p">(</span><span class="s1">'showLogo'</span><span class="p">,</span><span class="w"> </span><span class="nx">showLogo</span><span class="p">);</span>
+<span class="nx">vfdColor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">params</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">'vfdColor'</span><span class="p">)</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nx">vfdColor</span><span class="p">;</span>
 <span class="c1">// ... all parameters parsed from URL</span>
 </pre></div>
 </div>

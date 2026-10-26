@@ -70,7 +70,11 @@
 <li class="toctree-l4"><a class="reference internal" href="../../../../url-parameters/numbers.html#individual-number-fine-tuning">Individual Number Fine-Tuning</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../url-parameters/digital-display.html">Digital Display</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../url-parameters/digital-display.html">Digital Display</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../../url-parameters/digital-display.html#standalone-24-hour-clock">Standalone 24-hour clock</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../url-parameters/digital-display.html#swim-clock-vfd">Swim clock VFD</a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../url-parameters/minute-hand.html">Minute Hand</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../url-parameters/reference-image.html">Reference Image</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../url-parameters/animation-control.html">Animation Control</a></li>
@@ -80,6 +84,7 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../creating-url.html">Creating a URL</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../example-urls.html">Example URLs</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../example-urls.html#hour-digital-clock">24-hour Digital Clock</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../example-urls.html#minimal-display-no-digital-time">Minimal Display (No Digital Time)</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../example-urls.html#large-clock-with-logo">Large Clock with Logo</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../example-urls.html#green-display-theme">Green Display Theme</a></li>
@@ -176,14 +181,14 @@
 </ul>
 <p><strong>Setup Panel Visibility</strong></p>
 <p>The <code class="docutils literal notranslate"><span class="pre">setupmode</span></code> URL parameter controls panel visibility:</p>
-<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="kd">const</span><span class="w"> </span><span class="nx">SETUPMODE</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">paramBool</span><span class="p">(</span><span class="s1">&#39;setupmode&#39;</span><span class="p">,</span><span class="w"> </span><span class="kc">false</span><span class="p">);</span>
+<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="kd">const</span><span class="w"> </span><span class="nx">SETUPMODE</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">paramBool</span><span class="p">(</span><span class="s1">'setupmode'</span><span class="p">,</span><span class="w"> </span><span class="kc">false</span><span class="p">);</span>
 <span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">SETUPMODE</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-<span class="w">  </span><span class="nx">leftPanel</span><span class="p">.</span><span class="nx">style</span><span class="p">.</span><span class="nx">display</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;flex&#39;</span><span class="p">;</span>
+<span class="w">  </span><span class="nx">leftPanel</span><span class="p">.</span><span class="nx">style</span><span class="p">.</span><span class="nx">display</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'flex'</span><span class="p">;</span>
 <span class="p">}</span>
 </pre></div>
 </div>
 <p><strong>Window Resize Handler</strong></p>
-<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="nb">window</span><span class="p">.</span><span class="nx">addEventListener</span><span class="p">(</span><span class="s1">&#39;resize&#39;</span><span class="p">,</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="nb">window</span><span class="p">.</span><span class="nx">addEventListener</span><span class="p">(</span><span class="s1">'resize'</span><span class="p">,</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="nx">resizeCanvasToPanel</span><span class="p">();</span>
 <span class="w">  </span><span class="nx">drawClock</span><span class="p">();</span>
 <span class="p">});</span>

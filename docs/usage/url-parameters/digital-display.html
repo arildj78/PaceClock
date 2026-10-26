@@ -70,7 +70,11 @@
 <li class="toctree-l4"><a class="reference internal" href="numbers.html#individual-number-fine-tuning">Individual Number Fine-Tuning</a></li>
 </ul>
 </li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">Digital Display</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Digital Display</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#standalone-24-hour-clock">Standalone 24-hour clock</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#swim-clock-vfd">Swim clock VFD</a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="minute-hand.html">Minute Hand</a></li>
 <li class="toctree-l3"><a class="reference internal" href="reference-image.html">Reference Image</a></li>
 <li class="toctree-l3"><a class="reference internal" href="animation-control.html">Animation Control</a></li>
@@ -80,6 +84,7 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../creating-url.html">Creating a URL</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../example-urls.html">Example URLs</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../example-urls.html#hour-digital-clock">24-hour Digital Clock</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../example-urls.html#minimal-display-no-digital-time">Minimal Display (No Digital Time)</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../example-urls.html#large-clock-with-logo">Large Clock with Logo</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../example-urls.html#green-display-theme">Green Display Theme</a></li>
@@ -145,7 +150,96 @@
              
   <section id="digital-display">
 <h1>Digital Display<a class="headerlink" href="#digital-display" title="Link to this heading"></a></h1>
-<p>Configure the optional digital time display (HH:MM format) with VFD (vacuum fluorescent display) styling.</p>
+<section id="standalone-24-hour-clock">
+<h2>Standalone 24-hour clock<a class="headerlink" href="#standalone-24-hour-clock" title="Link to this heading"></a></h2>
+<p>Use <code class="docutils literal notranslate"><span class="pre">mode=digital</span></code> for a pure digital clock, <code class="docutils literal notranslate"><span class="pre">mode=swim</span></code> for the original
+pace clock (the default), or <code class="docutils literal notranslate"><span class="pre">mode=wall</span></code> for the analog wall clock.
+The digital clock uses local system time in 24-hour format with leading zeros.
+It never displays analog hands, dial markings, a reference image, or a logo.</p>
+<p>Open <code class="docutils literal notranslate"><span class="pre">clock.html?mode=digital&amp;setupmode=1</span></code> to configure it. The three clock
+buttons keep separate settings while the page is open. Use the source selector
+and “Grab values from other interface” to copy another clock’s settings.
+Only controls relevant to the selected mode are shown.</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Parameter</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">digitalStyle</span></code></p></td>
+<td><p>clean</p></td>
+<td><p>Design (see choices below)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">digitalFont</span></code></p></td>
+<td><p>mono</p></td>
+<td><p>Font for text-based designs (see below)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">digitalShowSeconds</span></code></p></td>
+<td><p>1</p></td>
+<td><p>HH:MM:SS when on, HH:MM when off</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">digitalScaleRel</span></code></p></td>
+<td><p>0.9</p></td>
+<td><p>Size relative to available area (0.2-1)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">digitalYOffsetRel</span></code></p></td>
+<td><p>0</p></td>
+<td><p>Vertical position (-0.5 top to 0.5 bottom)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">digitalGlowRel</span></code></p></td>
+<td><p>0</p></td>
+<td><p>Glow intensity (0-1)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">digitalManualTime</span></code></p></td>
+<td><p>12:00:00</p></td>
+<td><p>Preview time (HH:MM:SS) when <code class="docutils literal notranslate"><span class="pre">runClock=0</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">vfdColor</span></code></p></td>
+<td><p>#00b7ff</p></td>
+<td><p>Digit color (hex code)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">backgroundColor</span></code></p></td>
+<td><p>#000000</p></td>
+<td><p>Background color (hex code)</p></td>
+</tr>
+</tbody>
+</table>
+<p>Design choices:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">clean</span></code>: solid, bold text.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">segment</span></code>: classic seven-segment LED digits.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">matrix</span></code>: the same dot patterns as the pace clock’s VFD.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">outline</span></code>: outlined text.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">split-flap</span></code>: text on individual dark cards with a horizontal flap seam.
+This is a static visual treatment, not a flip animation.</p></li>
+</ul>
+<p>Font choices for Clean, Outline, and Split-flap:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">mono</span></code>: system monospace (default).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sans</span></code>: Arial / Helvetica.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">serif</span></code>: Georgia / Times New Roman.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">condensed</span></code>: Impact / Arial Narrow.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">rounded</span></code>: Trebuchet MS / Verdana.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">club</span></code>: the bundled BFont.</p></li>
+</ul>
+<p>System font availability varies by device; each choice has a fallback.
+No external font service is used. Fonts are fitted within fixed digit cells
+to keep the display stable as the time changes. Seven-segment and Dot-matrix
+use drawn shapes, so the font selector is disabled for those designs.</p>
+<p>Color presets, Run clock, screen-saver drift, debug overlay, and Copy URL work
+in digital mode too. Turn off Run clock to edit the manual preview time.
+The display fits both the width and height of its drawing area. Drift bounds
+account for its rectangular shape, vertical position, and glow.</p>
+<p>The generated share URL preserves the selected mode and its settings, but omits
+<code class="docutils literal notranslate"><span class="pre">setupmode</span></code>. <code class="docutils literal notranslate"><span class="pre">vfdEnabled</span></code> and the other VFD geometry/test settings below
+apply only to the swim clock’s optional display, not the standalone digital clock.</p>
+</section>
+<section id="swim-clock-vfd">
+<h2>Swim clock VFD<a class="headerlink" href="#swim-clock-vfd" title="Link to this heading"></a></h2>
+<p>Configure the optional swim clock time display (HH:MM format) with VFD
+(vacuum fluorescent display) styling.</p>
 <table class="docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>Parameter</p></th>
@@ -188,6 +282,7 @@
 </tr>
 </tbody>
 </table>
+</section>
 </section>
 
 

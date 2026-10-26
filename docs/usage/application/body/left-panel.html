@@ -70,7 +70,11 @@
 <li class="toctree-l4"><a class="reference internal" href="../../url-parameters/numbers.html#individual-number-fine-tuning">Individual Number Fine-Tuning</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="../../url-parameters/digital-display.html">Digital Display</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../url-parameters/digital-display.html">Digital Display</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../url-parameters/digital-display.html#standalone-24-hour-clock">Standalone 24-hour clock</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../url-parameters/digital-display.html#swim-clock-vfd">Swim clock VFD</a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="../../url-parameters/minute-hand.html">Minute Hand</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../url-parameters/reference-image.html">Reference Image</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../url-parameters/animation-control.html">Animation Control</a></li>
@@ -80,6 +84,7 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../../creating-url.html">Creating a URL</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../example-urls.html">Example URLs</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../example-urls.html#hour-digital-clock">24-hour Digital Clock</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../example-urls.html#minimal-display-no-digital-time">Minimal Display (No Digital Time)</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../example-urls.html#large-clock-with-logo">Large Clock with Logo</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../example-urls.html#green-display-theme">Green Display Theme</a></li>
@@ -148,9 +153,9 @@
 <h1>Left Panel<a class="headerlink" href="#left-panel" title="Link to this heading"></a></h1>
 <p>The left panel (<code class="docutils literal notranslate"><span class="pre">#leftPanel</span></code>) contains the interactive configuration interface. It’s hidden by default and only appears when <code class="docutils literal notranslate"><span class="pre">setupmode=1</span></code> is set in the URL.</p>
 <p><strong>Structure</strong></p>
-<div class="highlight-html notranslate"><div class="highlight"><pre><span></span><span class="p">&lt;</span><span class="nt">div</span> <span class="na">id</span><span class="o">=</span><span class="s">&quot;leftPanel&quot;</span><span class="p">&gt;</span>
-  <span class="p">&lt;</span><span class="nt">button</span> <span class="na">id</span><span class="o">=</span><span class="s">&quot;copyUrlBtn&quot;</span><span class="p">&gt;</span>Copy URL<span class="p">&lt;/</span><span class="nt">button</span><span class="p">&gt;</span>
-  <span class="p">&lt;</span><span class="nt">button</span> <span class="na">id</span><span class="o">=</span><span class="s">&quot;resetDriftBtn&quot;</span><span class="p">&gt;</span>Reset Drift Position<span class="p">&lt;/</span><span class="nt">button</span><span class="p">&gt;</span>
+<div class="highlight-html notranslate"><div class="highlight"><pre><span></span><span class="p">&lt;</span><span class="nt">div</span> <span class="na">id</span><span class="o">=</span><span class="s">"leftPanel"</span><span class="p">&gt;</span>
+  <span class="p">&lt;</span><span class="nt">button</span> <span class="na">id</span><span class="o">=</span><span class="s">"copyUrlBtn"</span><span class="p">&gt;</span>Copy URL<span class="p">&lt;/</span><span class="nt">button</span><span class="p">&gt;</span>
+  <span class="p">&lt;</span><span class="nt">button</span> <span class="na">id</span><span class="o">=</span><span class="s">"resetDriftBtn"</span><span class="p">&gt;</span>Reset Drift Position<span class="p">&lt;/</span><span class="nt">button</span><span class="p">&gt;</span>
   <span class="p">&lt;</span><span class="nt">details</span><span class="p">&gt;&lt;</span><span class="nt">summary</span><span class="p">&gt;</span>Tick marks<span class="p">&lt;/</span><span class="nt">summary</span><span class="p">&gt;</span>...<span class="p">&lt;/</span><span class="nt">details</span><span class="p">&gt;</span>
   <span class="p">&lt;</span><span class="nt">details</span><span class="p">&gt;&lt;</span><span class="nt">summary</span><span class="p">&gt;</span>Hands <span class="err">&amp;</span> diamond<span class="p">&lt;/</span><span class="nt">summary</span><span class="p">&gt;</span>...<span class="p">&lt;/</span><span class="nt">details</span><span class="p">&gt;</span>
   <span class="p">&lt;</span><span class="nt">details</span><span class="p">&gt;&lt;</span><span class="nt">summary</span><span class="p">&gt;</span>Numbers<span class="p">&lt;/</span><span class="nt">summary</span><span class="p">&gt;</span>...<span class="p">&lt;/</span><span class="nt">details</span><span class="p">&gt;</span>

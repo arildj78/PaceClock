@@ -70,7 +70,11 @@
 <li class="toctree-l4"><a class="reference internal" href="url-parameters/numbers.html#individual-number-fine-tuning">Individual Number Fine-Tuning</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="url-parameters/digital-display.html">Digital Display</a></li>
+<li class="toctree-l3"><a class="reference internal" href="url-parameters/digital-display.html">Digital Display</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="url-parameters/digital-display.html#standalone-24-hour-clock">Standalone 24-hour clock</a></li>
+<li class="toctree-l4"><a class="reference internal" href="url-parameters/digital-display.html#swim-clock-vfd">Swim clock VFD</a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="url-parameters/minute-hand.html">Minute Hand</a></li>
 <li class="toctree-l3"><a class="reference internal" href="url-parameters/reference-image.html">Reference Image</a></li>
 <li class="toctree-l3"><a class="reference internal" href="url-parameters/animation-control.html">Animation Control</a></li>
@@ -80,6 +84,7 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="creating-url.html">Creating a URL</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Example URLs</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#hour-digital-clock">24-hour Digital Clock</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#minimal-display-no-digital-time">Minimal Display (No Digital Time)</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#large-clock-with-logo">Large Clock with Logo</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#green-display-theme">Green Display Theme</a></li>
@@ -145,6 +150,19 @@
   <section id="example-urls">
 <h1>Example URLs<a class="headerlink" href="#example-urls" title="Link to this heading"></a></h1>
 <p>Here are practical examples showing how to create URLs for different use cases.</p>
+<section id="hour-digital-clock">
+<h2>24-hour Digital Clock<a class="headerlink" href="#hour-digital-clock" title="Link to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">https://arildj78.github.io/PaceClock/clock.html?mode=digital</span></code></p>
+<p>Pure digital HH:MM:SS display with the Clean design.</p>
+<p><code class="docutils literal notranslate"><span class="pre">https://arildj78.github.io/PaceClock/clock.html?mode=digital&amp;digitalStyle=segment&amp;digitalShowSeconds=0&amp;vfdColor=%2300ff88</span></code></p>
+<p>Green seven-segment HH:MM display.</p>
+<p><code class="docutils literal notranslate"><span class="pre">https://arildj78.github.io/PaceClock/clock.html?mode=digital&amp;digitalStyle=matrix&amp;setupmode=1</span></code></p>
+<p>Configure a dot-matrix clock using the live setup controls.</p>
+<p><code class="docutils literal notranslate"><span class="pre">https://arildj78.github.io/PaceClock/clock.html?mode=digital&amp;digitalStyle=split-flap&amp;digitalFont=condensed</span></code></p>
+<p>Split-flap cards with condensed digits.</p>
+<p><code class="docutils literal notranslate"><span class="pre">https://arildj78.github.io/PaceClock/clock.html?mode=digital&amp;digitalStyle=outline&amp;digitalFont=rounded</span></code></p>
+<p>Outlined digits with a rounded font.</p>
+</section>
 <section id="minimal-display-no-digital-time">
 <h2>Minimal Display (No Digital Time)<a class="headerlink" href="#minimal-display-no-digital-time" title="Link to this heading"></a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">https://arildj78.github.io/PaceClock/clock.html?vfdEnabled=0</span></code></p>
